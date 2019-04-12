@@ -1,0 +1,22 @@
+{
+  "name": "medical-supply-chain-contracts",
+  "version": "0.0.1",
+  "description": "Smart contracts for a supply chain tracking vaccine packages",
+  "main": "index.js",
+  "scripts": {
+    "test": "truffle test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EspeoBlockchain/medical-supply-chain-contracts.git"
+  },
+  "author": "Espeo Blockchain",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/EspeoBlockchain/medical-supply-chain-contracts/issues"
+  },
+  "homepage": "https://github.com/EspeoBlockchain/medical-supply-chain-contracts#readme",
+  "devDependencies": {
+    "truffle": "^5.0.12"
+  }
+}
