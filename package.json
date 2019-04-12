@@ -4,7 +4,7 @@
   "description": "Smart contracts for a supply chain tracking vaccine packages",
   "main": "index.js",
   "scripts": {
-    "test": "truffle test && solium -d contracts"
+    "test": "truffle test && solium -d contracts && eslint test/ migrations/"
   },
   "repository": {
     "type": "git",
@@ -17,6 +17,9 @@
   },
   "homepage": "https://github.com/EspeoBlockchain/medical-supply-chain-contracts#readme",
   "devDependencies": {
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.16.0",
     "ethlint": "^1.2.4",
     "truffle": "^5.0.12"
   }
