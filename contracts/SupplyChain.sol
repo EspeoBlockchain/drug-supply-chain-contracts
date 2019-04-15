@@ -3,8 +3,7 @@ pragma experimental ABIEncoderV2; // allows returning struct types
 
 contract SupplyChain {
 
-    struct PackageInfo {
-        bytes packageId;
+    struct Transfer {
         address from;
         address to;
         ReceiverType receiverType;
@@ -12,9 +11,9 @@ contract SupplyChain {
 
     enum ReceiverType { Transporter, Pharmacy }
 
-    mapping(bytes => PackageInfo) private packageLog;
+    mapping(bytes => Transfer[]) private packageLog;
 
-    function getPackageInfo(bytes memory _packageId) public view returns (PackageInfo memory) {
+    function getPackageTransferLog(bytes memory _packageId) public view returns (Transfer[] memory) {
         return packageLog[_packageId];
     }
 
@@ -23,7 +22,9 @@ contract SupplyChain {
         notEmptyPackageId(_packageId)
         onlyNewPackage(_packageId)
     {
-        packageLog[_packageId] = PackageInfo(_packageId, msg.sender, _to, _receiver);
+        // TODO consider creating a separate contract per package
+        // which would store the log of its transfers
+        packageLog[_packageId].push(Transfer(msg.sender, _to, _receiver));
     }
 
     modifier notEmptyPackageId(bytes memory _packageId) {
@@ -32,7 +33,7 @@ contract SupplyChain {
     }
 
     modifier onlyNewPackage(bytes memory _packageId) {
-        require(packageLog[_packageId].packageId.length == 0, "Given packageId is already known");
+        require(packageLog[_packageId].length == 0, "Given packageId is already known");
         _;
     }
 }

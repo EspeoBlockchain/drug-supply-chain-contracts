@@ -18,8 +18,7 @@ contract('SupplyChain.registerInitialTransfer()', async (accounts) => {
     // when
     await sut.registerInitialTransfer(packageIdBytes, to, receiver, { from });
     // then
-    const actual = await sut.getPackageInfo.call(packageIdBytes);
-    expect(actual.packageId).to.equal(packageId);
+    const [actual] = await sut.getPackageTransferLog.call(packageIdBytes);
     expect(actual.to).to.equal(to);
     expect(actual.from).to.equal(from);
   });
@@ -31,7 +30,7 @@ contract('SupplyChain.registerInitialTransfer()', async (accounts) => {
       // when
       await sut.registerInitialTransfer(packageIdBytes, to, receiverType, { from });
       // then
-      const actual = await sut.getPackageInfo.call(packageIdBytes);
+      const [actual] = await sut.getPackageTransferLog.call(packageIdBytes);
       expect(actual.receiverType).to.equal(`${receiverType}`); // web3 returns enum index as string
     });
   });
