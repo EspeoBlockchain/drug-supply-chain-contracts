@@ -16,9 +16,16 @@ contract SupplyChain {
 
     function registerInitialTransfer(bytes memory _packageId, address _to, ReceiverType _receiver)
         public
+        notEmpty(_packageId)
         onlyNewPackages(_packageId)
     {
         packageLog[_packageId] = PackageInfo(_packageId, msg.sender, _to, _receiver);
+    }
+
+
+    modifier notEmpty(bytes memory _packageId) {
+        require(_packageId.length > 0, "Given packageId is empty");
+        _;
     }
 
     modifier onlyNewPackages(bytes memory _packageId) {

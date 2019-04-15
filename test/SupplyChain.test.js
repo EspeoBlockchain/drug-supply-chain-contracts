@@ -36,8 +36,17 @@ contract('SupplyChain', async (accounts) => {
       await sut.registerInitialTransfer(packageIdBytes, to, receiverType, { from });
       // then
       const actual = await sut.getPackageInfo.call(packageIdBytes);
-      expect(actual.receiverType).to.equal(`${receiverType}`);
+      expect(actual.receiverType).to.equal(`${receiverType}`); // web3 returns enum index as string
     });
+  });
+
+  it('should not allow unknown receiver type', async () => {
+    // given
+    const sut = await SupplyChain.new();
+    // when
+    const promise = sut.registerInitialTransfer(packageIdBytes, to, 99, { from });
+    // then
+    await expect(promise).to.be.rejected;
   });
 
   it('should not allow registering same package twice', async () => {
@@ -48,5 +57,14 @@ contract('SupplyChain', async (accounts) => {
     const promise = sut.registerInitialTransfer(packageIdBytes, to, receiver, { from });
     // then
     await expect(promise).to.be.rejectedWith('Given package is already known');
+  });
+
+  it('should not allow registering empty package id', async () => {
+    // given
+    const sut = await SupplyChain.new();
+    // when
+    const promise = sut.registerInitialTransfer([], to, receiver, { from });
+    // then
+    await expect(promise).to.be.rejectedWith('Given packageId is empty');
   });
 });
