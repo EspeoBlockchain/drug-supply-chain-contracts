@@ -1,15 +1,11 @@
 /* globals artifacts, contract, it, web3 */
 
-const chai = require('chai');
-const chaiAsPromised = require('chai-as-promised');
-
-chai.use(chaiAsPromised);
-const { expect } = chai;
+const expect = require('./expect');
 
 const SupplyChain = artifacts.require('SupplyChain');
 const { hexToBytes, randomHex } = web3.utils;
 
-contract('SupplyChain', async (accounts) => {
+contract('SupplyChain.registerInitialTransfer()', async (accounts) => {
   const packageId = randomHex(32);
   const packageIdBytes = hexToBytes(packageId);
   const receiver = 0; // Transporter
