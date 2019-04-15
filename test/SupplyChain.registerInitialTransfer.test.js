@@ -52,10 +52,10 @@ contract('SupplyChain.registerInitialTransfer()', async (accounts) => {
     // when
     const promise = sut.registerInitialTransfer(packageIdBytes, to, receiver, { from });
     // then
-    await expect(promise).to.be.rejectedWith('Given package is already known');
+    await expect(promise).to.be.rejectedWith('Given packageId is already known');
   });
 
-  it('should not allow registering empty package id', async () => {
+  it('should not allow registering package with empty id', async () => {
     // given
     const sut = await SupplyChain.new();
     // when
