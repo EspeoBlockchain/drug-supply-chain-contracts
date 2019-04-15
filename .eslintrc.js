@@ -12,6 +12,14 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 2018,
   },
+  plugins: ['chai-friendly'],
+  overrides: [{
+    files: 'test/*.test.js',
+    rules: {
+      'no-unused-expressions': 'off',
+      'chai-friendly/no-unused-expressions': 'error',
+    },
+  }],
   rules: {
   },
 };
