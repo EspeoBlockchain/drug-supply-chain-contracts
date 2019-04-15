@@ -17,10 +17,10 @@
   },
   "homepage": "https://github.com/EspeoBlockchain/medical-supply-chain-contracts#readme",
   "devDependencies": {
-    "eslint": "^5.16.0",
-    "eslint-config-airbnb-base": "^13.1.0",
-    "eslint-plugin-import": "^2.16.0",
-    "ethlint": "^1.2.4",
-    "truffle": "^5.0.12"
+    "eslint": "5.16.0",
+    "eslint-config-airbnb-base": "13.1.0",
+    "eslint-plugin-import": "2.16.0",
+    "ethlint": "1.2.4",
+    "truffle": "5.0.12"
   }
 }
