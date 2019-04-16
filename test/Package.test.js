@@ -10,13 +10,21 @@ contract('Package', async (accounts) => {
   const producer = accounts[1];
   const receiver = accounts[2];
 
+  it('should set the creator as the primary', async () => {
+    // when
+    const sut = await Package.new(packageIdBytes, producer, receiver, receiverType);
+    // then
+    const actualPrimary = await sut.primary();
+    expect(actualPrimary).to.equal(accounts[0]);
+  });
+
   it('should create a package and register initial transfer', async () => {
     // when
     const actual = await Package.new(packageIdBytes, producer, receiver, receiverType);
     // then
     await expect(actual.packageId()).to.eventually.equal(packageId);
     await expect(actual.producer()).to.eventually.equal(producer);
-    await expect(actual.creator()).to.eventually.equal(accounts[0]);
+    await expect(actual.primary()).to.eventually.equal(accounts[0]);
 
     const actualTransferCount = await actual.getTransferCount();
     expect(actualTransferCount).to.be.a.bignumber.that.equals('1');
@@ -75,6 +83,6 @@ contract('Package', async (accounts) => {
     // when
     const promise = sut.logTransfer(from, to, receiverType, { from: accounts[9] });
     // then
-    await expect(promise).to.be.rejectedWith('This operation can only be performed by the contract creator');
+    await expect(promise).to.be.rejected;
   });
 });
