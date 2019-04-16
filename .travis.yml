@@ -4,4 +4,4 @@ cache: npm
 install:
   - npm install
 script:
-  - npm test
+  - npm run check
