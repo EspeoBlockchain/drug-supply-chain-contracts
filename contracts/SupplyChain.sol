@@ -7,9 +7,22 @@ import "./Package.sol";
 contract SupplyChain is Ownable {
 
     mapping(bytes => Package) private packages;
+    mapping(address => bool) private producers;
 
     function getPackage(bytes memory _packageId) public view returns (Package) {
         return packages[_packageId];
+    }
+
+    function registerProducer(address _producer) public onlyOwner {
+        producers[_producer] = true;
+    }
+
+    function deregisterProducer(address _producer) public onlyOwner {
+        producers[_producer] = false;
+    }
+
+    function isProducer(address _producer) public view returns (bool) {
+        return producers[_producer];
     }
 
     function registerInitialTransfer(bytes memory _packageId, address _to, Package.ReceiverType _receiver)
