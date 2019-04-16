@@ -8,10 +8,23 @@ module.exports = {
   globals: {
     Atomics: 'readonly',
     SharedArrayBuffer: 'readonly',
+    artifacts: 'readonly',
+    contract: 'readonly',
+    it: 'readonly',
+    web3: 'readonly'
   },
   parserOptions: {
     ecmaVersion: 2018,
   },
+  plugins: ['chai-friendly'],
+  overrides: [{
+    files: 'test/*.test.js',
+    rules: {
+      'no-unused-expressions': 'off',
+      'chai-friendly/no-unused-expressions': 'error',
+    },
+  }],
   rules: {
+    "max-len": ["error", { "code": 120 }]
   },
 };
