@@ -1,5 +1,3 @@
-/* global artifacts */
-
 const SupplyChain = artifacts.require('SupplyChain');
 
 module.exports = (deployer) => {

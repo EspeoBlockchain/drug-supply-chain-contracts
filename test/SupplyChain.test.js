@@ -1,5 +1,3 @@
-/* globals artifacts, contract, it, web3 */
-
 const expect = require('./expect');
 
 const SupplyChain = artifacts.require('SupplyChain');
