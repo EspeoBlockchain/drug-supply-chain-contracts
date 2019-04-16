@@ -5,6 +5,7 @@ contract Package {
     struct Transfer {
         address from;
         address to;
+        uint when;
         ReceiverType receiverType;
     }
 
@@ -34,7 +35,8 @@ contract Package {
         public
         onlyCreator
     {
-        transferLog.push(Transfer(_from, _to, _receiverType));
+        // solium-disable-next-line security/no-block-members
+        transferLog.push(Transfer(_from, _to, now, _receiverType));
     }
 
     modifier notEmptyPackageId(bytes memory _packageId) {

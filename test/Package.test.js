@@ -23,6 +23,7 @@ contract('Package', async (accounts) => {
     const actualTransfer = await actual.transferLog.call(0);
     expect(actualTransfer.to).to.equal(receiver);
     expect(actualTransfer.from).to.equal(producer);
+    expect(actualTransfer.when).to.be.a.bignumber.that.equals(`${(await web3.eth.getBlock('latest')).timestamp}`);
     expect(actualTransfer.receiverType).to.be.a.bignumber.that.equals(`${receiverType}`);
   });
 
