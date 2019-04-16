@@ -9,6 +9,7 @@ module.exports = {
     Atomics: 'readonly',
     SharedArrayBuffer: 'readonly',
     artifacts: 'readonly',
+    beforeEach: 'readonly',
     contract: 'readonly',
     it: 'readonly',
     web3: 'readonly'

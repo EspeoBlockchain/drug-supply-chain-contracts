@@ -28,12 +28,18 @@ contract SupplyChain is Ownable {
     function registerInitialTransfer(bytes memory _packageId, address _to, Package.ReceiverType _receiver)
         public
         onlyNewPackage(_packageId)
+        onlyKnownProducer
     {
         packages[_packageId] = new Package(_packageId, msg.sender, _to, _receiver);
     }
 
     modifier onlyNewPackage(bytes memory _packageId) {
         require(address(packages[_packageId]) == address(0), "Given packageId is already known");
+        _;
+    }
+
+    modifier onlyKnownProducer() {
+        require(producers[msg.sender], "Transaction sender is an unknown producer");
         _;
     }
 }

@@ -11,17 +11,21 @@ contract('SupplyChain', async (accounts) => {
   const producer = accounts[1];
   const receiver = accounts[2];
 
+  let sut;
+
+  beforeEach(async () => {
+    // given
+    sut = await SupplyChain.new();
+    await sut.registerProducer(producer);
+  });
+
   it('should be owned by the creator', async () => {
-    // when
-    const sut = await SupplyChain.new();
     // then
     const actualOwner = await sut.owner();
     expect(actualOwner).to.equal(accounts[0]);
   });
 
-  it('should register initial transfer', async () => {
-    // given
-    const sut = await SupplyChain.new();
+  it('should register initial transfer from a producer', async () => {
     // when
     await sut.registerInitialTransfer(packageIdBytes, receiver, receiverType, { from: producer });
     // then
@@ -32,7 +36,6 @@ contract('SupplyChain', async (accounts) => {
 
   it('should not allow registering same package twice', async () => {
     // given
-    const sut = await SupplyChain.new();
     await sut.registerInitialTransfer(packageIdBytes, receiver, receiverType, { from: producer });
     // when
     const promise = sut.registerInitialTransfer(packageIdBytes, receiver, receiverType, { from: producer });
@@ -40,9 +43,14 @@ contract('SupplyChain', async (accounts) => {
     await expect(promise).to.be.rejectedWith('Given packageId is already known');
   });
 
+  it('should not allow uknown producer to register an initial transfer', async () => {
+    // when
+    const promise = sut.registerInitialTransfer(packageIdBytes, receiver, receiverType, { from: accounts[9] });
+    // then
+    await expect(promise).to.be.rejectedWith('Transaction sender is an unknown producer');
+  });
+
   it('should allow owner to register a producer', async () => {
-    // given
-    const sut = await SupplyChain.new();
     // when
     await sut.registerProducer(producer);
     // then
@@ -52,7 +60,6 @@ contract('SupplyChain', async (accounts) => {
 
   it('should allow owner to deregister a producer', async () => {
     // given
-    const sut = await SupplyChain.new();
     await sut.registerProducer(producer);
     // when
     await sut.deregisterProducer(producer);
@@ -62,8 +69,6 @@ contract('SupplyChain', async (accounts) => {
   });
 
   it('should not allow non-owner to register a producer', async () => {
-    // given
-    const sut = await SupplyChain.new();
     // when
     const promise = sut.registerProducer(producer, { from: producer });
     // then
@@ -72,7 +77,6 @@ contract('SupplyChain', async (accounts) => {
 
   it('should not allow non-owner to deregister a producer', async () => {
     // given
-    const sut = await SupplyChain.new();
     await sut.registerProducer(producer);
     // when
     const promise = sut.deregisterProducer(producer, { from: producer });
