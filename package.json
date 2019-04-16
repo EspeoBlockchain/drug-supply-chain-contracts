@@ -4,7 +4,8 @@
   "description": "Smart contracts for a supply chain tracking vaccine packages",
   "main": "index.js",
   "scripts": {
-    "test": "truffle test && solium -d contracts && eslint test/ migrations/"
+    "lint": "solium -d contracts && eslint test/ migrations/",
+    "test": "truffle test && npm run lint"
   },
   "repository": {
     "type": "git",

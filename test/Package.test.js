@@ -18,7 +18,7 @@ contract('Package', async (accounts) => {
     // then
     await expect(actual.packageId()).to.eventually.equal(packageId);
     await expect(actual.producer()).to.eventually.equal(producer);
-    await expect(actual.owner()).to.eventually.equal(accounts[0]);
+    await expect(actual.creator()).to.eventually.equal(accounts[0]);
 
     const actualTransfer = await actual.transferLog.call(0);
     expect(actualTransfer.to).to.equal(receiver);
@@ -48,5 +48,30 @@ contract('Package', async (accounts) => {
     const promise = Package.new([], producer, receiver, receiverType);
     // then
     await expect(promise).to.be.rejectedWith('Given packageId is empty');
+  });
+
+  it('should register next transfer', async () => {
+    // given
+    const sut = await Package.new(packageIdBytes, producer, receiver, receiverType);
+    const from = receiver;
+    const to = accounts[3];
+    // when
+    await sut.logTransfer(from, to, receiverType);
+    // then
+    const actualTransfer = await sut.transferLog.call(1);
+    expect(actualTransfer.to).to.equal(to);
+    expect(actualTransfer.from).to.equal(from);
+    expect(actualTransfer.receiverType).to.be.a.bignumber.that.equals(`${receiverType}`);
+  });
+
+  it('should not allow non-owner to register next transfers', async () => {
+    // given
+    const sut = await Package.new(packageIdBytes, producer, receiver, receiverType);
+    const from = receiver;
+    const to = accounts[3];
+    // when
+    const promise = sut.logTransfer(from, to, receiverType, { from: accounts[9] });
+    // then
+    await expect(promise).to.be.rejectedWith('This operation can only be performed by the contract creator');
   });
 });
