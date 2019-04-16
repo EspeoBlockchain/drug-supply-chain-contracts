@@ -3,35 +3,43 @@
 const expect = require('./expect');
 
 const SupplyChain = artifacts.require('SupplyChain');
+const Package = artifacts.require('Package');
 const { hexToBytes, randomHex } = web3.utils;
 
 contract('SupplyChain.registerInitialTransfer()', async (accounts) => {
   const packageId = randomHex(32);
   const packageIdBytes = hexToBytes(packageId);
-  const receiver = 0; // Transporter
-  const from = accounts[0];
-  const to = accounts[1];
+  const receiverType = 0; // Transporter
+  const producer = accounts[0];
+  const receiver = accounts[1];
 
   it('should register initial transfer', async () => {
     // given
     const sut = await SupplyChain.new();
     // when
-    await sut.registerInitialTransfer(packageIdBytes, to, receiver, { from });
+    await sut.registerInitialTransfer(packageIdBytes, receiver, receiverType, { from: producer });
     // then
-    const [actual] = await sut.getPackageTransferLog.call(packageIdBytes);
-    expect(actual.to).to.equal(to);
-    expect(actual.from).to.equal(from);
+    const packageAddress = await sut.getPackage.call(packageIdBytes);
+    const actual = await Package.at(packageAddress);
+    await expect(actual.packageId()).to.eventually.equal(packageId);
+    await expect(actual.producer()).to.eventually.equal(producer);
+    await expect(actual.owner()).to.eventually.equal(sut.address);
+
+    const actualTransfer = await actual.transferLog.call(0);
+    expect(actualTransfer.to).to.equal(receiver);
+    expect(actualTransfer.from).to.equal(producer);
   });
 
-  ['Transporter', 'Pharmacy'].forEach((receiverName, receiverType) => {
-    it(`should allow ${receiverName} receiver type`, async () => {
+  ['Transporter', 'Pharmacy'].forEach((name, type) => {
+    it(`should allow ${name} receiver type`, async () => {
       // given
       const sut = await SupplyChain.new();
       // when
-      await sut.registerInitialTransfer(packageIdBytes, to, receiverType, { from });
+      await sut.registerInitialTransfer(packageIdBytes, receiver, type, { from: producer });
       // then
-      const [actual] = await sut.getPackageTransferLog.call(packageIdBytes);
-      expect(actual.receiverType).to.equal(`${receiverType}`); // web3 returns enum index as string
+      const actual = await Package.at(await sut.getPackage.call(packageIdBytes));
+      const { receiverType: actualType } = (await actual.transferLog.call(0));
+      expect(actualType).to.be.a.bignumber.that.equals(web3.utils.toBN(type));
     });
   });
 
@@ -39,7 +47,7 @@ contract('SupplyChain.registerInitialTransfer()', async (accounts) => {
     // given
     const sut = await SupplyChain.new();
     // when
-    const promise = sut.registerInitialTransfer(packageIdBytes, to, 99, { from });
+    const promise = sut.registerInitialTransfer(packageIdBytes, receiver, 99, { from: producer });
     // then
     await expect(promise).to.be.rejected;
   });
@@ -47,9 +55,9 @@ contract('SupplyChain.registerInitialTransfer()', async (accounts) => {
   it('should not allow registering same package twice', async () => {
     // given
     const sut = await SupplyChain.new();
-    await sut.registerInitialTransfer(packageIdBytes, to, receiver, { from });
+    await sut.registerInitialTransfer(packageIdBytes, receiver, receiverType, { from: producer });
     // when
-    const promise = sut.registerInitialTransfer(packageIdBytes, to, receiver, { from });
+    const promise = sut.registerInitialTransfer(packageIdBytes, receiver, receiverType, { from: producer });
     // then
     await expect(promise).to.be.rejectedWith('Given packageId is already known');
   });
@@ -58,7 +66,7 @@ contract('SupplyChain.registerInitialTransfer()', async (accounts) => {
     // given
     const sut = await SupplyChain.new();
     // when
-    const promise = sut.registerInitialTransfer([], to, receiver, { from });
+    const promise = sut.registerInitialTransfer([], receiver, receiverType, { from: producer });
     // then
     await expect(promise).to.be.rejectedWith('Given packageId is empty');
   });

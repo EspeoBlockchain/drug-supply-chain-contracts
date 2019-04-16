@@ -1,7 +1,10 @@
-const chai = require('chai');
-const chaiAsPromised = require('chai-as-promised');
+/* globals web3 */
 
-chai.use(chaiAsPromised);
+const chai = require('chai');
+
+chai.use(require('chai-as-promised'));
+chai.use(require('chai-bn')(web3.utils.BN));
+
 // eslint-disable-next-line no-unused-vars
 const { expect } = chai;
 
