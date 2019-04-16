@@ -1,9 +1,10 @@
-pragma solidity 0.5.0;
+pragma solidity 0.5.7;
 
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./Package.sol";
 
 
-contract SupplyChain {
+contract SupplyChain is Ownable {
 
     mapping(bytes => Package) private packages;
 

@@ -11,6 +11,14 @@ contract('SupplyChain', async (accounts) => {
   const producer = accounts[0];
   const receiver = accounts[1];
 
+  it('should be owned by the creator', async () => {
+    // when
+    const sut = await SupplyChain.new();
+    // then
+    const actualOwner = await sut.owner.call();
+    expect(actualOwner).to.equal(accounts[0]);
+  });
+
   it('should register initial transfer', async () => {
     // given
     const sut = await SupplyChain.new();
