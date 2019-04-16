@@ -20,6 +20,8 @@ contract('Package', async (accounts) => {
     await expect(actual.producer()).to.eventually.equal(producer);
     await expect(actual.creator()).to.eventually.equal(accounts[0]);
 
+    const actualTransferCount = await actual.getTransferCount.call();
+    expect(actualTransferCount).to.be.a.bignumber.that.equals('1');
     const actualTransfer = await actual.transferLog.call(0);
     expect(actualTransfer.to).to.equal(receiver);
     expect(actualTransfer.from).to.equal(producer);
@@ -58,6 +60,8 @@ contract('Package', async (accounts) => {
     // when
     await sut.logTransfer(from, to, receiverType);
     // then
+    const actualTransferCount = await sut.getTransferCount.call();
+    expect(actualTransferCount).to.be.a.bignumber.that.equals('2');
     const actualTransfer = await sut.transferLog.call(1);
     expect(actualTransfer.to).to.equal(to);
     expect(actualTransfer.from).to.equal(from);

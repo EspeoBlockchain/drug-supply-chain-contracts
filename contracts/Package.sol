@@ -26,6 +26,10 @@ contract Package {
         logTransfer(_producer, _receiver, _receiverType);
     }
 
+    function getTransferCount() public view returns (uint256) {
+        return transferLog.length;
+    }
+
     function logTransfer(address _from, address _to, ReceiverType _receiverType)
         public
         onlyCreator
