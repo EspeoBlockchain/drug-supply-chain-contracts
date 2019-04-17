@@ -1,7 +1,7 @@
 const expect = require('./expect');
-const receiverTypes = require('./receiverTypes');
+const participantTypes = require('./participantTypes');
 
 module.exports = {
   expect,
-  receiverTypes,
+  participantTypes,
 };

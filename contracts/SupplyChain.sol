@@ -12,19 +12,19 @@ contract SupplyChain is ProducersManager {
         return packages[_packageId];
     }
 
-    function registerInitialTransfer(bytes memory _packageId, address _to, Package.ReceiverType _receiver)
+    function registerInitialTransfer(bytes memory _packageId, address _to, Package.ParticipantType _participant)
         public
         onlyNewPackage(_packageId)
         onlyKnownProducer
     {
-        packages[_packageId] = new Package(_packageId, msg.sender, _to, _receiver);
+        packages[_packageId] = new Package(_packageId, msg.sender, _to, _participant);
     }
 
-    function registerTransfer(bytes memory _packageId, address _to, Package.ReceiverType _receiver)
+    function registerTransfer(bytes memory _packageId, address _to, Package.ParticipantType _participant)
         public
         onlyKnownPackage(_packageId)
     {
-        packages[_packageId].logTransfer(msg.sender, _to, _receiver);
+        packages[_packageId].logTransfer(msg.sender, _to, _participant);
     }
 
     modifier onlyNewPackage(bytes memory _packageId) {
