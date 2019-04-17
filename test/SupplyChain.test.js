@@ -1,4 +1,4 @@
-const { expect, participantTypes } = require('./common');
+const { expect, participantTypes, transporterTypes } = require('./common');
 
 const SupplyChain = artifacts.require('SupplyChain');
 const Package = artifacts.require('Package');
@@ -8,6 +8,8 @@ contract('SupplyChain', async (accounts) => {
   const packageId = randomHex(32);
   const packageIdBytes = hexToBytes(packageId);
   const transporter = participantTypes.Transporter;
+  const temperature = -20;
+  const transporterType = transporterTypes.Truck;
   const producer = accounts[1];
   const firstParticipant = accounts[2];
   const secondParticipant = accounts[3];
@@ -51,7 +53,12 @@ contract('SupplyChain', async (accounts) => {
       // given
       await sut.registerInitialTransfer(packageIdBytes, firstParticipant, type, { from: producer });
       // when
-      await sut.registerTransfer(packageIdBytes, secondParticipant, type, { from: firstParticipant });
+      await sut.registerTransfer(
+        packageIdBytes,
+        secondParticipant, type,
+        temperature, transporterType,
+        { from: firstParticipant },
+      );
       // then
       const packageAddress = await sut.getPackage(packageIdBytes);
       const actualPackage = await Package.at(packageAddress);
@@ -64,14 +71,28 @@ contract('SupplyChain', async (accounts) => {
       expect(actualTransfer.to).to.equal(secondParticipant);
       expect(actualTransfer.when).to.be.a.bignumber.that.equals(`${(await web3.eth.getBlock('latest')).timestamp}`);
       expect(actualTransfer.participantType).to.be.a.bignumber.that.equals(`${type}`);
+      expect(actualTransfer.conditions.temperature).to.equal(`${temperature}`);
+      expect(actualTransfer.conditions.transporterType).to.equal(`${transporterType}`);
     });
 
     it(`should register a subsequent transfer from a transporter to ${name}`, async () => {
       // given
       await sut.registerInitialTransfer(packageIdBytes, firstParticipant, type, { from: producer });
-      await sut.registerTransfer(packageIdBytes, secondParticipant, transporter, { from: firstParticipant });
+      await sut.registerTransfer(
+        packageIdBytes,
+        secondParticipant, transporter,
+        temperature, transporterType,
+        { from: firstParticipant },
+      );
+      const secondTemperature = -19;
+      const secondTransporterType = transporterTypes.Airplane;
       // when
-      await sut.registerTransfer(packageIdBytes, thirdParticipant, type, { from: secondParticipant });
+      await sut.registerTransfer(
+        packageIdBytes,
+        thirdParticipant, type,
+        secondTemperature, secondTransporterType,
+        { from: secondParticipant },
+      );
       // then
       const packageAddress = await sut.getPackage(packageIdBytes);
       const actualPackage = await Package.at(packageAddress);
@@ -84,12 +105,19 @@ contract('SupplyChain', async (accounts) => {
       expect(actualTransfer.to).to.equal(thirdParticipant);
       expect(actualTransfer.when).to.be.a.bignumber.that.equals(`${(await web3.eth.getBlock('latest')).timestamp}`);
       expect(actualTransfer.participantType).to.be.a.bignumber.that.equals(`${type}`);
+      expect(actualTransfer.conditions.temperature).to.equal(`${secondTemperature}`);
+      expect(actualTransfer.conditions.transporterType).to.equal(`${secondTransporterType}`);
     });
   });
 
   it('should not allow registering transfer of an unknown package', async () => {
     // when
-    const promise = sut.registerTransfer(packageIdBytes, secondParticipant, transporter, { from: firstParticipant });
+    const promise = sut.registerTransfer(
+      packageIdBytes,
+      secondParticipant, transporter,
+      temperature, transporterType,
+      { from: firstParticipant },
+    );
     // then
     await expect(promise).to.be.rejectedWith('Given packageId is unknown');
   });

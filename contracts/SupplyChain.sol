@@ -20,11 +20,17 @@ contract SupplyChain is ProducersManager {
         packages[_packageId] = new Package(_packageId, msg.sender, _to, _participant);
     }
 
-    function registerTransfer(bytes memory _packageId, address _to, Package.ParticipantType _participant)
+    function registerTransfer(
+        bytes memory _packageId,
+        address _to,
+        Package.ParticipantType _participant,
+        int8 _temperature,
+        Package.TransporterType _transporter
+    )
         public
         onlyKnownPackage(_packageId)
     {
-        packages[_packageId].logTransfer(msg.sender, _to, _participant);
+        packages[_packageId].logTransfer(msg.sender, _to, _participant, _temperature, _transporter);
     }
 
     modifier onlyNewPackage(bytes memory _packageId) {

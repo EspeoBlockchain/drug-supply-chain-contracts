@@ -1,4 +1,4 @@
-const { expect, participantTypes } = require('./common');
+const { expect, participantTypes, transporterTypes } = require('./common');
 
 const Package = artifacts.require('Package');
 const { hexToBytes, randomHex } = web3.utils;
@@ -64,8 +64,10 @@ contract('Package', async (accounts) => {
     const sut = await Package.new(packageIdBytes, producer, participant, participantType);
     const from = participant;
     const to = accounts[3];
+    const temperature = -100;
+    const transporterType = transporterTypes.Ship;
     // when
-    await sut.logTransfer(from, to, participantType);
+    await sut.logTransfer(from, to, participantType, temperature, transporterType);
     // then
     const actualTransferCount = await sut.getTransferCount();
     expect(actualTransferCount).to.be.a.bignumber.that.equals('2');
@@ -73,6 +75,8 @@ contract('Package', async (accounts) => {
     expect(actualTransfer.from).to.equal(from);
     expect(actualTransfer.to).to.equal(to);
     expect(actualTransfer.participantType).to.be.a.bignumber.that.equals(`${participantType}`);
+    expect(actualTransfer.conditions.temperature).to.equal(`${temperature}`);
+    expect(actualTransfer.conditions.transporterType).to.equal(`${transporterType}`);
   });
 
   it('should not allow non-owner to register next transfers', async () => {
