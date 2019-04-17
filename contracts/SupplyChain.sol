@@ -1,9 +1,10 @@
-pragma solidity 0.5.0;
+pragma solidity 0.5.7;
 
 import "./Package.sol";
+import "./ProducersManager.sol";
 
 
-contract SupplyChain {
+contract SupplyChain is ProducersManager {
 
     mapping(bytes => Package) private packages;
 
@@ -14,6 +15,7 @@ contract SupplyChain {
     function registerInitialTransfer(bytes memory _packageId, address _to, Package.ReceiverType _receiver)
         public
         onlyNewPackage(_packageId)
+        onlyKnownProducer
     {
         packages[_packageId] = new Package(_packageId, msg.sender, _to, _receiver);
     }

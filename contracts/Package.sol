@@ -1,6 +1,9 @@
-pragma solidity 0.5.0;
+pragma solidity 0.5.7;
 
-contract Package {
+import "openzeppelin-solidity/contracts/ownership/Secondary.sol";
+
+
+contract Package is Secondary {
 
     struct Transfer {
         address from;
@@ -11,8 +14,6 @@ contract Package {
 
     enum ReceiverType { Transporter, Pharmacy }
 
-    address public creator;
-
     bytes public packageId;
     address public producer;
     Transfer[] public transferLog;
@@ -21,7 +22,6 @@ contract Package {
         public
         notEmptyPackageId(_packageId)
     {
-        creator = msg.sender;
         packageId = _packageId;
         producer = _producer;
         logTransfer(_producer, _receiver, _receiverType);
@@ -33,7 +33,7 @@ contract Package {
 
     function logTransfer(address _from, address _to, ReceiverType _receiverType)
         public
-        onlyCreator
+        onlyPrimary
     {
         // solium-disable-next-line security/no-block-members
         transferLog.push(Transfer(_from, _to, now, _receiverType));
@@ -41,11 +41,6 @@ contract Package {
 
     modifier notEmptyPackageId(bytes memory _packageId) {
         require(_packageId.length > 0, "Given packageId is empty");
-        _;
-    }
-
-    modifier onlyCreator() {
-        require(msg.sender == creator, "This operation can only be performed by the contract creator");
         _;
     }
 }

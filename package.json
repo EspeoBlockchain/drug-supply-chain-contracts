@@ -28,5 +28,8 @@
     "eslint-plugin-import": "2.16.0",
     "ethlint": "1.2.4",
     "truffle": "5.0.12"
+  },
+  "dependencies": {
+    "openzeppelin-solidity": "2.2.0"
   }
 }
