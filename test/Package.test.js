@@ -29,8 +29,8 @@ contract('Package', async (accounts) => {
     const actualTransferCount = await actual.getTransferCount();
     expect(actualTransferCount).to.be.a.bignumber.that.equals('1');
     const actualTransfer = await actual.transferLog(0);
-    expect(actualTransfer.to).to.equal(receiver);
     expect(actualTransfer.from).to.equal(producer);
+    expect(actualTransfer.to).to.equal(receiver);
     expect(actualTransfer.when).to.be.a.bignumber.that.equals(`${(await web3.eth.getBlock('latest')).timestamp}`);
     expect(actualTransfer.receiverType).to.be.a.bignumber.that.equals(`${receiverType}`);
   });
@@ -70,8 +70,8 @@ contract('Package', async (accounts) => {
     const actualTransferCount = await sut.getTransferCount();
     expect(actualTransferCount).to.be.a.bignumber.that.equals('2');
     const actualTransfer = await sut.transferLog(1);
-    expect(actualTransfer.to).to.equal(to);
     expect(actualTransfer.from).to.equal(from);
+    expect(actualTransfer.to).to.equal(to);
     expect(actualTransfer.receiverType).to.be.a.bignumber.that.equals(`${receiverType}`);
   });
 

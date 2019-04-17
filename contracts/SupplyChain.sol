@@ -20,8 +20,20 @@ contract SupplyChain is ProducersManager {
         packages[_packageId] = new Package(_packageId, msg.sender, _to, _receiver);
     }
 
+    function registerTransfer(bytes memory _packageId, address _to, Package.ReceiverType _receiver)
+        public
+        onlyKnownPackage(_packageId)
+    {
+        packages[_packageId].logTransfer(msg.sender, _to, _receiver);
+    }
+
     modifier onlyNewPackage(bytes memory _packageId) {
         require(address(packages[_packageId]) == address(0), "Given packageId is already known");
+        _;
+    }
+
+    modifier onlyKnownPackage(bytes memory _packageId) {
+        require(address(packages[_packageId]) != address(0), "Given packageId is unknown");
         _;
     }
 }
