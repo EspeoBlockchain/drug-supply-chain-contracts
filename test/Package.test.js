@@ -1,4 +1,4 @@
-const expect = require('./expect');
+const { expect, receiverTypes } = require('./common');
 
 const Package = artifacts.require('Package');
 const { hexToBytes, randomHex } = web3.utils;
@@ -6,7 +6,7 @@ const { hexToBytes, randomHex } = web3.utils;
 contract('Package', async (accounts) => {
   const packageId = randomHex(32);
   const packageIdBytes = hexToBytes(packageId);
-  const receiverType = 0; // Transporter
+  const receiverType = receiverTypes.Transporter;
   const producer = accounts[1];
   const receiver = accounts[2];
 
@@ -35,7 +35,7 @@ contract('Package', async (accounts) => {
     expect(actualTransfer.receiverType).to.be.a.bignumber.that.equals(`${receiverType}`);
   });
 
-  ['Transporter', 'Pharmacy'].forEach((name, type) => {
+  Object.entries(receiverTypes).forEach(([name, type]) => {
     it(`should allow ${name} receiver type`, async () => {
       // when
       const actual = await Package.new(packageIdBytes, producer, receiver, type);

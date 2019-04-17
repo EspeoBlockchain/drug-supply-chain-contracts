@@ -1,4 +1,4 @@
-const expect = require('./expect');
+const { expect } = require('./common');
 
 const ProducersManager = artifacts.require('ProducersManager');
 

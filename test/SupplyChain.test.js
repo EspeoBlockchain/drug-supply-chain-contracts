@@ -1,4 +1,4 @@
-const expect = require('./expect');
+const { expect, receiverTypes } = require('./common');
 
 const SupplyChain = artifacts.require('SupplyChain');
 const Package = artifacts.require('Package');
@@ -7,7 +7,7 @@ const { hexToBytes, randomHex } = web3.utils;
 contract('SupplyChain', async (accounts) => {
   const packageId = randomHex(32);
   const packageIdBytes = hexToBytes(packageId);
-  const transporter = 0; // Transporter
+  const transporter = receiverTypes.Transporter;
   const producer = accounts[1];
   const firstReceiver = accounts[2];
   const secondReceiver = accounts[3];
@@ -46,7 +46,7 @@ contract('SupplyChain', async (accounts) => {
     await expect(promise).to.be.rejectedWith('Transaction sender is an unknown producer');
   });
 
-  ['Transporter', 'Pharmacy'].forEach((name, type) => {
+  Object.entries(receiverTypes).forEach(([name, type]) => {
     it(`should register transfer from a transporter to a ${name}`, async () => {
       // given
       await sut.registerInitialTransfer(packageIdBytes, firstReceiver, type, { from: producer });
