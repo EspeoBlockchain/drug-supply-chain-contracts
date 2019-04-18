@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 import "openzeppelin-solidity/contracts/ownership/Secondary.sol";
 
 
-contract Package is Secondary {
+contract DrugItem is Secondary {
 
     struct TransporterConditions {
         int8 temperature;
@@ -22,15 +22,15 @@ contract Package is Secondary {
     enum ParticipantType { Transporter, Pharmacy }
     enum TransporterType { Airplane, Ship, Truck, None }
 
-    bytes public packageId;
+    bytes public drugItemId;
     address public producer;
     Transfer[] public transferLog;
 
-    constructor(bytes memory _packageId, address _producer, address _to, ParticipantType _participantType)
+    constructor(bytes memory _drugItemId, address _producer, address _to, ParticipantType _participantType)
         public
-        notEmptyPackageId(_packageId)
+        notEmptyDrugItemId(_drugItemId)
     {
-        packageId = _packageId;
+        drugItemId = _drugItemId;
         producer = _producer;
         logTransfer(_producer, _to, _participantType, 0, TransporterType.None);
     }
@@ -53,8 +53,8 @@ contract Package is Secondary {
         transferLog.push(Transfer(_from, _to, now, _participantType, TransporterConditions(_temperature, _transporterType)));
     }
 
-    modifier notEmptyPackageId(bytes memory _packageId) {
-        require(_packageId.length > 0, "Given packageId is empty");
+    modifier notEmptyDrugItemId(bytes memory _drugItemId) {
+        require(_drugItemId.length > 0, "Given drugItemId is empty");
         _;
     }
 }

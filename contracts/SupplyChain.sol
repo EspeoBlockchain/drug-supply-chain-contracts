@@ -1,45 +1,45 @@
 pragma solidity 0.5.7;
 
-import "./Package.sol";
-import "./ProducersManager.sol";
+import "./DrugItem.sol";
+import "./VendorsManager.sol";
 
 
-contract SupplyChain is ProducersManager {
+contract SupplyChain is VendorsManager {
 
-    mapping(bytes => Package) private packages;
+    mapping(bytes => DrugItem) private items;
 
-    function getPackage(bytes memory _packageId) public view returns (Package) {
-        return packages[_packageId];
+    function getDrugItem(bytes memory _drugItemId) public view returns (DrugItem) {
+        return items[_drugItemId];
     }
 
-    function registerInitialTransfer(bytes memory _packageId, address _to, Package.ParticipantType _participant)
+    function registerInitialTransfer(bytes memory _drugItemId, address _to, DrugItem.ParticipantType _participant)
         public
-        onlyNewPackage(_packageId)
-        onlyKnownProducer
+        onlyNewDrugItem(_drugItemId)
+        onlyKnownVendor
     {
-        packages[_packageId] = new Package(_packageId, msg.sender, _to, _participant);
+        items[_drugItemId] = new DrugItem(_drugItemId, msg.sender, _to, _participant);
     }
 
     function registerTransfer(
-        bytes memory _packageId,
+        bytes memory _drugItemId,
         address _to,
-        Package.ParticipantType _participant,
+        DrugItem.ParticipantType _participant,
         int8 _temperature,
-        Package.TransporterType _transporter
+        DrugItem.TransporterType _transporter
     )
         public
-        onlyKnownPackage(_packageId)
+        onlyKnownDrugItem(_drugItemId)
     {
-        packages[_packageId].logTransfer(msg.sender, _to, _participant, _temperature, _transporter);
+        items[_drugItemId].logTransfer(msg.sender, _to, _participant, _temperature, _transporter);
     }
 
-    modifier onlyNewPackage(bytes memory _packageId) {
-        require(address(packages[_packageId]) == address(0), "Given packageId is already known");
+    modifier onlyNewDrugItem(bytes memory _drugItemId) {
+        require(address(items[_drugItemId]) == address(0), "Given drug item is already known");
         _;
     }
 
-    modifier onlyKnownPackage(bytes memory _packageId) {
-        require(address(packages[_packageId]) != address(0), "Given packageId is unknown");
+    modifier onlyKnownDrugItem(bytes memory _drugItemId) {
+        require(address(items[_drugItemId]) != address(0), "Given drug item is unknown");
         _;
     }
 }
