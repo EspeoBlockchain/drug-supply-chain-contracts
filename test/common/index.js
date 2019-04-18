@@ -1,9 +1,9 @@
 const expect = require('./expect');
-const participantTypes = require('./participantTypes');
-const transporterTypes = require('./transporterTypes');
+const participantCategories = require('./participantCategories');
+const carrierCategories = require('./carrierCategories');
 
 module.exports = {
   expect,
-  participantTypes,
-  transporterTypes,
+  participantCategories,
+  carrierCategories,
 };
