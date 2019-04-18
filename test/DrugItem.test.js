@@ -1,4 +1,9 @@
-const { expect, participantCategories, carrierCategories } = require('./common');
+const {
+  expect,
+  data,
+  participantCategories,
+  carrierCategories,
+} = require('./common');
 
 const DrugItem = artifacts.require('DrugItem');
 const { hexToBytes, randomHex } = web3.utils;
@@ -6,22 +11,9 @@ const { hexToBytes, randomHex } = web3.utils;
 contract('DrugItem', async (accounts) => {
   const drugItemId = randomHex(32);
   const drugItemIdBytes = hexToBytes(drugItemId);
-  const vendor = {
-    id: accounts[1],
-    category: participantCategories.Vendor,
-  };
-  const carrier = {
-    id: accounts[2],
-    category: participantCategories.Carrier,
-    conditions: {
-      temperature: -20,
-      category: carrierCategories.Ship,
-    },
-  };
-  const pharmacy = {
-    id: accounts[5],
-    category: participantCategories.Pharmacy,
-  };
+  const vendor = data.vendor(accounts[1]);
+  const carrier = data.carrier(accounts[2]);
+  const pharmacy = data.pharmacy(accounts[3]);
 
   it('should set the creator as the primary', async () => {
     // when
@@ -57,6 +49,7 @@ contract('DrugItem', async (accounts) => {
     expect(actualTransitConditions.category).to.be.a.bignumber.that.equals(`${carrierCategories.NotApplicable}`);
   });
 
+  // TODO shouldn't be able to do a initial transfer to a producer
   Object.entries(participantCategories).forEach(([name, category]) => {
     it(`should create drug item with ${name} participant category`, async () => {
       // when
@@ -111,6 +104,7 @@ contract('DrugItem', async (accounts) => {
     expect(actualTransitConditions.category).to.be.a.bignumber.that.equals(`${carrier.conditions.category}`);
   });
 
+  // TODO test 'should not allow unknown carrier category when registering handovers'
   it('should not allow non-owner to register next handovers', async () => {
     // given
     const sut = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, carrier.category);

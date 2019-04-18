@@ -1,4 +1,8 @@
-const { expect, participantCategories, carrierCategories } = require('./common');
+const {
+  expect,
+  data,
+  carrierCategories,
+} = require('./common');
 
 const SupplyChain = artifacts.require('SupplyChain');
 const DrugItem = artifacts.require('DrugItem');
@@ -8,42 +12,12 @@ contract('SupplyChain', async (accounts) => {
   const drugItemId = randomHex(32);
   const drugItemIdBytes = hexToBytes(drugItemId);
 
-  const vendor = {
-    id: accounts[1],
-    category: participantCategories.Vendor,
-  };
-  const carrier1 = {
-    id: accounts[2],
-    category: participantCategories.Carrier,
-    conditions: {
-      temperature: -20,
-      category: carrierCategories.Ship,
-    },
-  };
-  const carrier2 = {
-    id: accounts[3],
-    category: participantCategories.Carrier,
-    conditions: {
-      temperature: -22,
-      category: carrierCategories.Airplane,
-    },
-  };
-  const carrier3 = {
-    id: accounts[4],
-    category: participantCategories.Carrier,
-    conditions: {
-      temperature: -10,
-      category: carrierCategories.Truck,
-    },
-  };
-  const pharmacy = {
-    id: accounts[5],
-    category: participantCategories.Pharmacy,
-  };
-  const unknownVendor = {
-    id: accounts[9],
-    category: participantCategories.Vendor,
-  };
+  const vendor = data.vendor(accounts[1]);
+  const carrier1 = data.carrier(accounts[2], carrierCategories.Truck);
+  const carrier2 = data.carrier(accounts[3], carrierCategories.Ship);
+  const carrier3 = data.carrier(accounts[4], carrierCategories.Airplane);
+  const pharmacy = data.pharmacy(accounts[5]);
+  const unknownVendor = data.vendor(accounts[6]);
 
   let sut;
 
