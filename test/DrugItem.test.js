@@ -109,7 +109,6 @@ contract('DrugItem', async (accounts) => {
     });
   });
 
-  // TODO test 'should not allow unknown carrier category when registering handovers'
   it('should not allow non-owner to register next handovers', async () => {
     // given
     const sut = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, carrier.category);
@@ -118,6 +117,18 @@ contract('DrugItem', async (accounts) => {
       pharmacy.id,
       pharmacy.category,
       { from: pharmacy.id },
+    );
+    // then
+    await expect(promise).to.be.rejected;
+  });
+
+  it('should not allow unknown carrier category when registering handovers', async () => {
+    // given
+    const sut = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, carrier.category);
+    // when
+    const promise = sut.logHandover(
+      pharmacy.id,
+      99,
     );
     // then
     await expect(promise).to.be.rejected;
