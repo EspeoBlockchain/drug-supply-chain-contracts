@@ -49,6 +49,7 @@ contract DrugItem is Secondary {
         public
         onlyPrimary
     {
+        require(_participantCategory != ParticipantCategory.Vendor, "Drug item can't be handed over back to any vendor");
         // solium-disable-next-line security/no-block-members
         handoverLog.push(Handover(Participant(_to, _participantCategory), now));
     }

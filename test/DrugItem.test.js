@@ -48,15 +48,35 @@ contract('DrugItem', async (accounts) => {
     expect(actualTransitConditions.category).to.equal(`${carrierCategories.NotApplicable}`);
   });
 
-  // TODO shouldn't be able to do a initial transfer to a producer
-  Object.entries(participantCategories).forEach(([name, category]) => {
-    it(`should create drug item with ${name} participant category`, async () => {
-      // when
-      const actual = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, category);
-      // then
-      const actualCategory = (await actual.handoverLog(0)).to.category;
-      expect(actualCategory).to.equal(`${category}`);
+  Object.entries(participantCategories)
+    .filter(([name]) => name !== 'Vendor')
+    .forEach(([name, category]) => {
+      it(`should create drug item with ${name} participant category`, async () => {
+        // when
+        const actual = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, category);
+        // then
+        const actualCategory = (await actual.handoverLog(0)).to.category;
+        expect(actualCategory).to.equal(`${category}`);
+      });
     });
+
+  it('should not allow an initial handover to a vendor', async () => {
+    // when
+    const promise = DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, participantCategories.Vendor);
+    // then
+    await expect(promise).to.be.rejectedWith('Drug item can\'t be handed over back to any vendor');
+  });
+
+  it('should not allow a handover to a vendor', async () => {
+    // given
+    const sut = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, carrier.category);
+    // when
+    const promise = sut.logHandover(
+      pharmacy.id,
+      participantCategories.Vendor,
+    );
+    // then
+    await expect(promise).to.be.rejectedWith('Drug item can\'t be handed over back to any vendor');
   });
 
   it('should not allow unknown participant category when creating drugItem', async () => {
