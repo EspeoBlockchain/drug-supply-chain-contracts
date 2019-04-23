@@ -12,25 +12,32 @@ contract SupplyChain is VendorsManager {
         return items[_drugItemId];
     }
 
-    function registerInitialTransfer(bytes memory _drugItemId, address _to, DrugItem.ParticipantType _participant)
+    function registerInitialHandover(
+        bytes memory _drugItemId,
+        address _to,
+        DrugItem.ParticipantCategory _participantCategory
+    )
         public
         onlyNewDrugItem(_drugItemId)
         onlyKnownVendor
     {
-        items[_drugItemId] = new DrugItem(_drugItemId, msg.sender, _to, _participant);
+        items[_drugItemId] = new DrugItem(_drugItemId, msg.sender, _to, _participantCategory);
     }
 
-    function registerTransfer(
+    function registerHandover(
         bytes memory _drugItemId,
         address _to,
-        DrugItem.ParticipantType _participant,
+        DrugItem.ParticipantCategory _participantCategory,
         int8 _temperature,
-        DrugItem.TransporterType _transporter
+        DrugItem.TransitCategory _transitCategory
     )
         public
         onlyKnownDrugItem(_drugItemId)
     {
-        items[_drugItemId].logTransfer(msg.sender, _to, _participant, _temperature, _transporter);
+        items[_drugItemId].logHandover(_to, _participantCategory);
+        address from = address(1); // FIXME add a DrugItem.getLastHandover() and get the data from there
+        uint when = 1; // FIXME ditto
+        items[_drugItemId].logTransitConditions(from, _to, when, _temperature, _transitCategory);
     }
 
     modifier onlyNewDrugItem(bytes memory _drugItemId) {

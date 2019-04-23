@@ -6,51 +6,68 @@ import "openzeppelin-solidity/contracts/ownership/Secondary.sol";
 
 contract DrugItem is Secondary {
 
-    struct TransporterConditions {
-        int8 temperature;
-        TransporterType transporterType;
-    }
-
-    struct Transfer {
-        address from;
-        address to;
+    struct Handover {
+        Participant to;
         uint when;
-        ParticipantType participantType;
-        TransporterConditions conditions;
     }
 
-    enum ParticipantType { Transporter, Pharmacy }
-    enum TransporterType { Airplane, Ship, Truck, None }
+    struct Participant {
+        address id;
+        ParticipantCategory category;
+    }
+
+    struct TransitConditions {
+        int8 temperature;
+        TransitCategory category;
+    }
+
+    enum ParticipantCategory { Vendor, Carrier, Pharmacy }
+    enum TransitCategory { NotApplicable, Airplane, Ship, Truck }
 
     bytes public drugItemId;
-    address public producer;
-    Transfer[] public transferLog;
+    address public vendor;
+    Handover[] public handoverLog;
+    mapping(bytes32 => TransitConditions) private transitConditionsLog;
 
-    constructor(bytes memory _drugItemId, address _producer, address _to, ParticipantType _participantType)
+    constructor(bytes memory _drugItemId, address _vendor, address _to, ParticipantCategory _participantCategory)
         public
         notEmptyDrugItemId(_drugItemId)
     {
         drugItemId = _drugItemId;
-        producer = _producer;
-        logTransfer(_producer, _to, _participantType, 0, TransporterType.None);
+        vendor = _vendor;
+        logHandover(_to, _participantCategory);
     }
 
-    function getTransferCount() public view returns (uint256) {
-        return transferLog.length;
+    function getHandoverCount() public view returns (uint256) {
+        return handoverLog.length;
     }
 
-    function logTransfer(
-        address _from,
+    function logHandover(
         address _to,
-        ParticipantType _participantType,
-        int8 _temperature,
-        TransporterType _transporterType
+        ParticipantCategory _participantCategory
     )
         public
         onlyPrimary
     {
         // solium-disable-next-line security/no-block-members
-        transferLog.push(Transfer(_from, _to, now, _participantType, TransporterConditions(_temperature, _transporterType)));
+        handoverLog.push(Handover(Participant(_to, _participantCategory), now));
+    }
+
+    function logTransitConditions(address _from, address _to, uint _when, int8 _temperature, TransitCategory _transitCategory)
+        public
+        onlyPrimary
+    {
+        bytes32 key = getTransitConditionsKey(_from, _to, _when);
+        transitConditionsLog[key] = TransitConditions(_temperature, _transitCategory);
+    }
+
+    function getTransitConditions(address _from, address _to, uint _when) public view returns (TransitConditions memory) {
+        bytes32 key = getTransitConditionsKey(_from, _to, _when);
+        return transitConditionsLog[key];
+    }
+
+    function getTransitConditionsKey(address _from, address _to, uint _when) private pure returns (bytes32) {
+        return keccak256(abi.encodePacked(_from, _to, _when));
     }
 
     modifier notEmptyDrugItemId(bytes memory _drugItemId) {

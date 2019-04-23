@@ -1,5 +1,6 @@
 const {
   expect,
+  assertHandover,
   data,
   participantCategories,
   carrierCategories,
@@ -28,25 +29,23 @@ contract('DrugItem', async (accounts) => {
     const actual = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, carrier.category);
     // then
     await expect(actual.drugItemId()).to.eventually.equal(drugItemId);
-    await expect(actual.vendor()).to.eventually.equal(vendor);
+    await expect(actual.vendor()).to.eventually.equal(vendor.id);
     await expect(actual.primary()).to.eventually.equal(accounts[0]);
 
-    const actualHandoverCount = await actual.getHandoverCount();
-    expect(actualHandoverCount).to.be.a.bignumber.that.equals('1');
-    const actualHandover = await actual.handoverLog(0);
-    expect(actualHandover.from.id).to.equal(vendor.id);
-    expect(actualHandover.from.category).to.be.a.bignumber.that.equals(`${vendor.category}`);
-    expect(actualHandover.to.id).to.equal(carrier.id);
-    expect(actualHandover.to.category).to.be.a.bignumber.that.equals(`${carrier.category}`);
-    expect(actualHandover.when).to.be.a.bignumber.that.equals(`${(await web3.eth.getBlock('latest')).timestamp}`);
+    await assertHandover(actual)({
+      atIndex: 0,
+      expectedHandoverCount: 1,
+      expectedTo: carrier,
+    });
 
+    // no transit conditions should be present
     const actualTransitConditions = await actual.getTransitConditions(
       vendor.id,
       carrier.id,
-      actualHandover.when,
+      (await actual.handoverLog(0)).when,
     );
-    expect(actualTransitConditions.temperature).to.be.a.bignumber.that.equals('0');
-    expect(actualTransitConditions.category).to.be.a.bignumber.that.equals(`${carrierCategories.NotApplicable}`);
+    expect(actualTransitConditions.temperature).to.equal('0');
+    expect(actualTransitConditions.category).to.equal(`${carrierCategories.NotApplicable}`);
   });
 
   // TODO shouldn't be able to do a initial transfer to a producer
@@ -55,8 +54,8 @@ contract('DrugItem', async (accounts) => {
       // when
       const actual = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, category);
       // then
-      const { participantCategory: actualCategory } = (await actual.handoverLog(0));
-      expect(actualCategory).to.be.a.bignumber.that.equals(`${category}`);
+      const actualCategory = (await actual.handoverLog(0)).to.category;
+      expect(actualCategory).to.equal(`${category}`);
     });
   });
 
@@ -79,29 +78,15 @@ contract('DrugItem', async (accounts) => {
     const sut = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, carrier.category);
     // when
     await sut.logHandover(
-      carrier.id,
       pharmacy.id,
       pharmacy.category,
-      carrier.conditions.temperature,
-      carrier.conditions.category,
     );
     // then
-    const actualHandoverCount = await sut.getHandoverCount();
-    expect(actualHandoverCount).to.be.a.bignumber.that.equals('2');
-    const actualHandover = await sut.handoverLog(1);
-    expect(actualHandover.from.id).to.equal(carrier.id);
-    expect(actualHandover.from.category).to.be.a.bignumber.that.equals(`${carrier.category}`);
-    expect(actualHandover.to.id).to.equal(pharmacy.id);
-    expect(actualHandover.to.category).to.be.a.bignumber.that.equals(`${pharmacy.category}`);
-    expect(actualHandover.when).to.be.a.bignumber.that.equals(`${(await web3.eth.getBlock('latest')).timestamp}`);
-
-    const actualTransitConditions = await sut.getTransitConditions(
-      carrier.id,
-      pharmacy.id,
-      actualHandover.when,
-    );
-    expect(actualTransitConditions.temperature).to.be.a.bignumber.that.equals(`${carrier.conditions.temperature}`);
-    expect(actualTransitConditions.category).to.be.a.bignumber.that.equals(`${carrier.conditions.category}`);
+    await assertHandover(sut)({
+      atIndex: 1,
+      expectedHandoverCount: 2,
+      expectedTo: pharmacy,
+    });
   });
 
   // TODO test 'should not allow unknown carrier category when registering handovers'
@@ -110,14 +95,22 @@ contract('DrugItem', async (accounts) => {
     const sut = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, carrier.category);
     // when
     const promise = sut.logHandover(
-      carrier.id,
       pharmacy.id,
       pharmacy.category,
-      carrier.conditions.temperature,
-      carrier.conditions.category,
       { from: pharmacy.id },
     );
     // then
     await expect(promise).to.be.rejected;
   });
+
+  // TODO test transit conditions
+  /*
+    const actualTransitConditions = await sut.getTransitConditions(
+      carrier.id,
+      pharmacy.id,
+      actualHandover.when,
+    );
+    expect(actualTransitConditions.temperature).to.equal(`${carrier.conditions.temperature}`);
+    expect(actualTransitConditions.category).to.equal(`${carrier.conditions.category}`);
+  */
 });
