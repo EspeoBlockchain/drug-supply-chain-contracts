@@ -42,6 +42,10 @@ contract DrugItem is Secondary {
         return handoverLog.length;
     }
 
+    function getLastHandover() public view returns (Handover memory) {
+        return handoverLog[handoverLog.length - 1];
+    }
+
     function logHandover(
         address _to,
         ParticipantCategory _participantCategory

@@ -134,6 +134,29 @@ contract('DrugItem', async (accounts) => {
     await expect(promise).to.be.rejected;
   });
 
+  it('should return the only handover after initial handover', async () => {
+    // given
+    const sut = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, carrier.category);
+    // when
+    const actualHandover = await sut.getLastHandover();
+    // then
+    expect(actualHandover.to.id).to.equal(carrier.id);
+    expect(actualHandover.to.category).to.equal(`${carrier.category}`);
+    expect(actualHandover.when).to.equal(`${(await web3.eth.getBlock('latest')).timestamp}`);
+  });
+
+  it('should return the last handover after a sequence of handovers', async () => {
+    // given
+    const sut = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, carrier.category);
+    await sut.logHandover(pharmacy.id, pharmacy.category);
+    // when
+    const actualHandover = await sut.getLastHandover();
+    // then
+    expect(actualHandover.to.id).to.equal(pharmacy.id);
+    expect(actualHandover.to.category).to.equal(`${pharmacy.category}`);
+    expect(actualHandover.when).to.equal(`${(await web3.eth.getBlock('latest')).timestamp}`);
+  });
+
   // TODO test transit conditions
   /*
     const actualTransitConditions = await sut.getTransitConditions(
