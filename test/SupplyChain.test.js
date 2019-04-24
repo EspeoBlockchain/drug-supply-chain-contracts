@@ -58,7 +58,7 @@ contract('SupplyChain', async (accounts) => {
     // given
     await sut.registerInitialHandover(drugItemIdBytes, carrier1.id, carrier1.category, { from: vendor.id });
     // when
-    const promise = sut.registerInitialHandover(drugItemIdBytes, vendor.id, carrier1.id, { from: vendor.id });
+    const promise = sut.registerInitialHandover(drugItemIdBytes, carrier1.id, carrier1.category, { from: vendor.id });
     // then
     await expect(promise).to.be.rejectedWith('Given drug item is already known');
   });
@@ -145,7 +145,7 @@ contract('SupplyChain', async (accounts) => {
       drugItemIdBytes,
       carrier3.id, carrier3.category,
       carrier2.conditions.temperature, carrier2.conditions.category,
-      { from: carrier1.id },
+      { from: carrier2.id },
     );
     // then
     const drugItemAddress = await sut.getDrugItem(drugItemIdBytes);
@@ -160,7 +160,7 @@ contract('SupplyChain', async (accounts) => {
     await assertTransitConditions(actualDrugItem)({
       from: carrier2.id,
       to: carrier3.id,
-      whenHandoverLogIndex: 2,
+      whenHandoverLogIndex: 1,
       expectedConditions: carrier2.conditions,
     });
   });
@@ -179,7 +179,7 @@ contract('SupplyChain', async (accounts) => {
       drugItemIdBytes,
       pharmacy.id, pharmacy.category,
       carrier2.conditions.temperature, carrier2.conditions.category,
-      { from: carrier1.id },
+      { from: carrier2.id },
     );
     // then
     const drugItemAddress = await sut.getDrugItem(drugItemIdBytes);
@@ -187,14 +187,14 @@ contract('SupplyChain', async (accounts) => {
 
     await assertHandover(actualDrugItem)({
       atIndex: 2,
-      expectedHandoverCount: 2,
+      expectedHandoverCount: 3,
       expectedTo: pharmacy,
     });
 
     await assertTransitConditions(actualDrugItem)({
       from: carrier2.id,
       to: pharmacy.id,
-      whenHandoverLogIndex: 2,
+      whenHandoverLogIndex: 1,
       expectedConditions: carrier2.conditions,
     });
   });

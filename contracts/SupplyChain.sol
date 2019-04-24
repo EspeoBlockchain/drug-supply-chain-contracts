@@ -1,4 +1,5 @@
 pragma solidity 0.5.7;
+pragma experimental ABIEncoderV2;
 
 import "./DrugItem.sol";
 import "./VendorsManager.sol";
@@ -35,9 +36,8 @@ contract SupplyChain is VendorsManager {
         onlyKnownDrugItem(_drugItemId)
     {
         items[_drugItemId].logHandover(_to, _participantCategory);
-        address from = address(1); // FIXME add a DrugItem.getLastHandover() and get the data from there
-        uint when = 1; // FIXME ditto
-        items[_drugItemId].logTransitConditions(from, _to, when, _temperature, _transitCategory);
+        uint when = items[_drugItemId].getLastHandover().when;
+        items[_drugItemId].logTransitConditions(msg.sender, _to, when, _temperature, _transitCategory);
     }
 
     modifier onlyNewDrugItem(bytes memory _drugItemId) {
