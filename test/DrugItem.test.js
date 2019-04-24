@@ -2,7 +2,7 @@ const {
   expect,
   assertHandover,
   assertTransitConditions,
-  data,
+  participants,
   participantCategories,
   carrierCategories,
 } = require('./common');
@@ -13,9 +13,9 @@ const { hexToBytes, randomHex } = web3.utils;
 contract('DrugItem', async (accounts) => {
   const drugItemId = randomHex(32);
   const drugItemIdBytes = hexToBytes(drugItemId);
-  const vendor = data.vendor(accounts[1]);
-  const carrier = data.carrier(accounts[2]);
-  const pharmacy = data.pharmacy(accounts[3]);
+  const vendor = participants.vendor(accounts[1]);
+  const carrier = participants.carrier(accounts[2]);
+  const pharmacy = participants.pharmacy(accounts[3]);
 
   it('should set the creator as the primary', async () => {
     // when

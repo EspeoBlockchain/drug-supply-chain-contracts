@@ -1,7 +1,7 @@
 const expect = require('./expect');
 const assertHandover = require('./assertHandover');
 const assertTransitConditions = require('./assertTransitConditions');
-const data = require('./data');
+const participants = require('./participants');
 const participantCategories = require('./participantCategories');
 const carrierCategories = require('./carrierCategories');
 
@@ -9,7 +9,7 @@ module.exports = {
   expect,
   assertHandover,
   assertTransitConditions,
-  data,
+  participants,
   participantCategories,
   carrierCategories,
 };

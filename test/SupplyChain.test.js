@@ -2,7 +2,7 @@ const {
   expect,
   assertHandover,
   assertTransitConditions,
-  data,
+  participants,
   carrierCategories,
 } = require('./common');
 
@@ -14,12 +14,12 @@ contract('SupplyChain', async (accounts) => {
   const drugItemId = randomHex(32);
   const drugItemIdBytes = hexToBytes(drugItemId);
 
-  const vendor = data.vendor(accounts[1]);
-  const carrier1 = data.carrier(accounts[2], carrierCategories.Truck);
-  const carrier2 = data.carrier(accounts[3], carrierCategories.Ship);
-  const carrier3 = data.carrier(accounts[4], carrierCategories.Airplane);
-  const pharmacy = data.pharmacy(accounts[5]);
-  const unknownVendor = data.vendor(accounts[6]);
+  const vendor = participants.vendor(accounts[1]);
+  const carrier1 = participants.carrier(accounts[2], carrierCategories.Truck);
+  const carrier2 = participants.carrier(accounts[3], carrierCategories.Ship);
+  const carrier3 = participants.carrier(accounts[4], carrierCategories.Airplane);
+  const pharmacy = participants.pharmacy(accounts[5]);
+  const unknownVendor = participants.vendor(accounts[6]);
 
   let sut;
 
