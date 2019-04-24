@@ -1,6 +1,7 @@
 const {
   expect,
   assertHandover,
+  assertTransitConditions,
   data,
   participantCategories,
   carrierCategories,
@@ -157,14 +158,25 @@ contract('DrugItem', async (accounts) => {
     expect(actualHandover.when).to.equal(`${(await web3.eth.getBlock('latest')).timestamp}`);
   });
 
-  // TODO test transit conditions
-  /*
-    const actualTransitConditions = await sut.getTransitConditions(
+  it('should log transit conditions', async () => {
+    // given
+    const sut = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, carrier.category);
+    await sut.logHandover(pharmacy.id, pharmacy.category);
+    const { when } = await sut.getLastHandover();
+    // when
+    await sut.logTransitConditions(
       carrier.id,
       pharmacy.id,
-      actualHandover.when,
+      when,
+      carrier.conditions.temperature,
+      carrier.conditions.category,
     );
-    expect(actualTransitConditions.temperature).to.equal(`${carrier.conditions.temperature}`);
-    expect(actualTransitConditions.category).to.equal(`${carrier.conditions.category}`);
-  */
+    // then
+    await assertTransitConditions(sut)({
+      from: carrier.id,
+      to: pharmacy.id,
+      whenHandoverLogIndex: 0,
+      expectedConditions: carrier.conditions,
+    });
+  });
 });
