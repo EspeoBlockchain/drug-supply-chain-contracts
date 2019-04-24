@@ -15,8 +15,6 @@ const conditions = (category = carrierCategories.Truck) => ({
 
 module.exports = {
   vendor: id => Object.assign({}, participant(id, Vendor)),
-  carrier: (id, carrierCategory) => Object.assign(
-    {}, participant(id, Carrier), { conditions: conditions(carrierCategory) },
-  ),
+  carrier: (id, carrierCategory) => ({ ...participant(id, Carrier), conditions: conditions(carrierCategory) }),
   pharmacy: id => Object.assign({}, participant(id, Pharmacy)),
 };

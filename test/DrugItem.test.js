@@ -40,13 +40,15 @@ contract('DrugItem', async (accounts) => {
     });
 
     // no transit conditions should be present
-    const actualTransitConditions = await actual.getTransitConditions(
-      vendor.id,
-      carrier.id,
-      (await actual.handoverLog(0)).when,
-    );
-    expect(actualTransitConditions.temperature).to.equal('0');
-    expect(actualTransitConditions.category).to.equal(`${carrierCategories.NotApplicable}`);
+    await assertTransitConditions(actual)({
+      from: vendor.id,
+      to: carrier.id,
+      whenHandoverLogIndex: 0,
+      expectedConditions: {
+        temperature: 0,
+        category: carrierCategories.NotApplicable,
+      },
+    });
   });
 
   Object.entries(participantCategories)
