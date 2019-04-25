@@ -84,8 +84,10 @@ contract('SupplyChain', async (accounts) => {
     // when
     await sut.registerHandover(
       drugItemIdBytes,
-      carrier2.id, carrier2.category,
-      carrier1.conditions.temperature, carrier1.conditions.category,
+      carrier2.id,
+      carrier2.category,
+      carrier1.conditions.temperature,
+      carrier1.conditions.category,
       { from: carrier1.id },
     );
     // then
@@ -108,8 +110,10 @@ contract('SupplyChain', async (accounts) => {
     // when
     await sut.registerHandover(
       drugItemIdBytes,
-      pharmacy.id, pharmacy.category,
-      carrier1.conditions.temperature, carrier1.conditions.category,
+      pharmacy.id,
+      pharmacy.category,
+      carrier1.conditions.temperature,
+      carrier1.conditions.category,
       { from: carrier1.id },
     );
     // then
@@ -131,15 +135,19 @@ contract('SupplyChain', async (accounts) => {
     await sut.registerInitialHandover(drugItemIdBytes, carrier1.id, carrier1.category, { from: vendor.id });
     await sut.registerHandover(
       drugItemIdBytes,
-      carrier2.id, carrier2.category,
-      carrier1.conditions.temperature, carrier1.conditions.category,
+      carrier2.id,
+      carrier2.category,
+      carrier1.conditions.temperature,
+      carrier1.conditions.category,
       { from: carrier1.id },
     );
     // when
     await sut.registerHandover(
       drugItemIdBytes,
-      carrier3.id, carrier3.category,
-      carrier2.conditions.temperature, carrier2.conditions.category,
+      carrier3.id,
+      carrier3.category,
+      carrier2.conditions.temperature,
+      carrier2.conditions.category,
       { from: carrier2.id },
     );
     // then
@@ -161,15 +169,19 @@ contract('SupplyChain', async (accounts) => {
     await sut.registerInitialHandover(drugItemIdBytes, carrier1.id, carrier1.category, { from: vendor.id });
     await sut.registerHandover(
       drugItemIdBytes,
-      carrier2.id, carrier2.category,
-      carrier1.conditions.temperature, carrier1.conditions.category,
+      carrier2.id,
+      carrier2.category,
+      carrier1.conditions.temperature,
+      carrier1.conditions.category,
       { from: carrier1.id },
     );
     // when
     await sut.registerHandover(
       drugItemIdBytes,
-      pharmacy.id, pharmacy.category,
-      carrier2.conditions.temperature, carrier2.conditions.category,
+      pharmacy.id,
+      pharmacy.category,
+      carrier2.conditions.temperature,
+      carrier2.conditions.category,
       { from: carrier2.id },
     );
     // then
@@ -190,8 +202,10 @@ contract('SupplyChain', async (accounts) => {
     // when
     const handoverRegistration = sut.registerHandover(
       drugItemIdBytes,
-      carrier2.id, carrier2.category,
-      carrier1.conditions.temperature, carrier1.conditions.category,
+      carrier2.id,
+      carrier2.category,
+      carrier1.conditions.temperature,
+      carrier1.conditions.category,
       { from: carrier1.id },
     );
     // then
