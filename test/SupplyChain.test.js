@@ -1,6 +1,7 @@
 const {
   expect,
-  assertHandover,
+  expectHandover,
+  expectDrugItem,
   assertTransitConditions,
   participants,
   carrierCategories,
@@ -37,11 +38,11 @@ contract('SupplyChain', async (accounts) => {
     const actualDrugItem = await DrugItem.at(drugItemAddress);
     await expect(actualDrugItem.drugItemId()).to.eventually.equal(drugItemId);
 
-    await assertHandover(actualDrugItem)({
-      atIndex: 0,
-      expectedHandoverCount: 1,
-      expectedTo: carrier1,
-    });
+    await expectDrugItem(actualDrugItem).toHaveHandoverCountThatEquals(1);
+    const actualHandover = await actualDrugItem.handoverLog(0);
+    expectHandover(actualHandover).toHaveToIdThatEquals(carrier1.id);
+    expectHandover(actualHandover).toHaveToCategoryThatEquals(carrier1.category);
+    await expectHandover(actualHandover).toHaveWhenEqualToLatestBlockTimestamp();
 
     await assertTransitConditions(actualDrugItem)({
       from: vendor.id,
@@ -89,11 +90,11 @@ contract('SupplyChain', async (accounts) => {
     const drugItemAddress = await sut.getDrugItem(drugItemIdBytes);
     const actualDrugItem = await DrugItem.at(drugItemAddress);
 
-    await assertHandover(actualDrugItem)({
-      atIndex: 1,
-      expectedHandoverCount: 2,
-      expectedTo: carrier2,
-    });
+    await expectDrugItem(actualDrugItem).toHaveHandoverCountThatEquals(2);
+    const actualHandover = await actualDrugItem.handoverLog(1);
+    expectHandover(actualHandover).toHaveToIdThatEquals(carrier2.id);
+    expectHandover(actualHandover).toHaveToCategoryThatEquals(carrier2.category);
+    await expectHandover(actualHandover).toHaveWhenEqualToLatestBlockTimestamp();
 
     await assertTransitConditions(actualDrugItem)({
       from: carrier1.id,
@@ -117,11 +118,11 @@ contract('SupplyChain', async (accounts) => {
     const drugItemAddress = await sut.getDrugItem(drugItemIdBytes);
     const actualDrugItem = await DrugItem.at(drugItemAddress);
 
-    await assertHandover(actualDrugItem)({
-      atIndex: 1,
-      expectedHandoverCount: 2,
-      expectedTo: pharmacy,
-    });
+    await expectDrugItem(actualDrugItem).toHaveHandoverCountThatEquals(2);
+    const actualHandover = await actualDrugItem.handoverLog(1);
+    expectHandover(actualHandover).toHaveToIdThatEquals(pharmacy.id);
+    expectHandover(actualHandover).toHaveToCategoryThatEquals(pharmacy.category);
+    await expectHandover(actualHandover).toHaveWhenEqualToLatestBlockTimestamp();
 
     await assertTransitConditions(actualDrugItem)({
       from: carrier1.id,
@@ -151,11 +152,11 @@ contract('SupplyChain', async (accounts) => {
     const drugItemAddress = await sut.getDrugItem(drugItemIdBytes);
     const actualDrugItem = await DrugItem.at(drugItemAddress);
 
-    await assertHandover(actualDrugItem)({
-      atIndex: 2,
-      expectedHandoverCount: 3,
-      expectedTo: carrier3,
-    });
+    await expectDrugItem(actualDrugItem).toHaveHandoverCountThatEquals(3);
+    const actualHandover = await actualDrugItem.handoverLog(2);
+    expectHandover(actualHandover).toHaveToIdThatEquals(carrier3.id);
+    expectHandover(actualHandover).toHaveToCategoryThatEquals(carrier3.category);
+    await expectHandover(actualHandover).toHaveWhenEqualToLatestBlockTimestamp();
 
     await assertTransitConditions(actualDrugItem)({
       from: carrier2.id,
@@ -185,11 +186,11 @@ contract('SupplyChain', async (accounts) => {
     const drugItemAddress = await sut.getDrugItem(drugItemIdBytes);
     const actualDrugItem = await DrugItem.at(drugItemAddress);
 
-    await assertHandover(actualDrugItem)({
-      atIndex: 2,
-      expectedHandoverCount: 3,
-      expectedTo: pharmacy,
-    });
+    await expectDrugItem(actualDrugItem).toHaveHandoverCountThatEquals(3);
+    const actualHandover = await actualDrugItem.handoverLog(2);
+    expectHandover(actualHandover).toHaveToIdThatEquals(pharmacy.id);
+    expectHandover(actualHandover).toHaveToCategoryThatEquals(pharmacy.category);
+    await expectHandover(actualHandover).toHaveWhenEqualToLatestBlockTimestamp();
 
     await assertTransitConditions(actualDrugItem)({
       from: carrier2.id,

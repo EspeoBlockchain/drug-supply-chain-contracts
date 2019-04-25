@@ -1,6 +1,7 @@
 const {
   expect,
-  assertHandover,
+  expectHandover,
+  expectDrugItem,
   assertTransitConditions,
   participants,
   participantCategories,
@@ -32,12 +33,12 @@ contract('DrugItem', async (accounts) => {
     await expect(actual.drugItemId()).to.eventually.equal(drugItemId);
     await expect(actual.vendor()).to.eventually.equal(vendor.id);
     await expect(actual.primary()).to.eventually.equal(accounts[0]);
+    await expectDrugItem(actual).toHaveHandoverCountThatEquals(1);
 
-    await assertHandover(actual)({
-      atIndex: 0,
-      expectedHandoverCount: 1,
-      expectedTo: carrier,
-    });
+    const actualHandover = await actual.handoverLog(0);
+    expectHandover(actualHandover).toHaveToIdThatEquals(carrier.id);
+    expectHandover(actualHandover).toHaveToCategoryThatEquals(carrier.category);
+    await expectHandover(actualHandover).toHaveWhenEqualToLatestBlockTimestamp();
 
     // no transit conditions should be present
     await assertTransitConditions(actual)({
@@ -105,11 +106,11 @@ contract('DrugItem', async (accounts) => {
       pharmacy.category,
     );
     // then
-    await assertHandover(sut)({
-      atIndex: 1,
-      expectedHandoverCount: 2,
-      expectedTo: pharmacy,
-    });
+    await expectDrugItem(sut).toHaveHandoverCountThatEquals(2);
+    const actualHandover = await sut.handoverLog(1);
+    expectHandover(actualHandover).toHaveToIdThatEquals(pharmacy.id);
+    expectHandover(actualHandover).toHaveToCategoryThatEquals(pharmacy.category);
+    await expectHandover(actualHandover).toHaveWhenEqualToLatestBlockTimestamp();
   });
 
   it('should not allow non-owner to register next handovers', async () => {
