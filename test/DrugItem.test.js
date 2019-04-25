@@ -143,7 +143,8 @@ contract('DrugItem', async (accounts) => {
     // then
     expect(actualHandover.to.id).to.equal(carrier.id);
     expect(actualHandover.to.category).to.equal(`${carrier.category}`);
-    expect(actualHandover.when).to.equal(`${(await web3.eth.getBlock('latest')).timestamp}`);
+    const latestBlockTimestamp = (await web3.eth.getBlock('latest')).timestamp;
+    expect(actualHandover.when).to.equal(`${latestBlockTimestamp}`);
   });
 
   it('should return the last handover after a sequence of handovers', async () => {
@@ -155,7 +156,8 @@ contract('DrugItem', async (accounts) => {
     // then
     expect(actualHandover.to.id).to.equal(pharmacy.id);
     expect(actualHandover.to.category).to.equal(`${pharmacy.category}`);
-    expect(actualHandover.when).to.equal(`${(await web3.eth.getBlock('latest')).timestamp}`);
+    const latestBlockTimestamp = (await web3.eth.getBlock('latest')).timestamp;
+    expect(actualHandover.when).to.equal(`${latestBlockTimestamp}`);
   });
 
   it('should log transit conditions', async () => {
