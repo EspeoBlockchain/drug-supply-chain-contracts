@@ -2,7 +2,8 @@ const {
   expect,
   expectHandover,
   expectDrugItem,
-  assertTransitConditions,
+  expectTransitConditions,
+  getTransitConditions,
   participants,
   carrierCategories,
 } = require('./common');
@@ -44,14 +45,10 @@ contract('SupplyChain', async (accounts) => {
     expectHandover(actualHandover).toHaveToCategoryThatEquals(carrier1.category);
     await expectHandover(actualHandover).toHaveWhenEqualToLatestBlockTimestamp();
 
-    await assertTransitConditions(actualDrugItem)({
-      from: vendor.id,
-      to: carrier1.id,
-      whenHandoverLogIndex: 0,
-      expectedConditions: {
-        temperature: 0,
-        category: carrierCategories.NotApplicable,
-      },
+    const actualTransitConditions = await getTransitConditions(actualDrugItem, vendor.id, carrier1.id, 0);
+    expectTransitConditions(actualTransitConditions).toEqualConditions({
+      temperature: 0,
+      category: carrierCategories.NotApplicable,
     });
   });
 
@@ -96,12 +93,8 @@ contract('SupplyChain', async (accounts) => {
     expectHandover(actualHandover).toHaveToCategoryThatEquals(carrier2.category);
     await expectHandover(actualHandover).toHaveWhenEqualToLatestBlockTimestamp();
 
-    await assertTransitConditions(actualDrugItem)({
-      from: carrier1.id,
-      to: carrier2.id,
-      whenHandoverLogIndex: 1,
-      expectedConditions: carrier1.conditions,
-    });
+    const actualTransitConditions = await getTransitConditions(actualDrugItem, carrier1.id, carrier2.id, 1);
+    expectTransitConditions(actualTransitConditions).toEqualConditions(carrier1.conditions);
   });
 
   it('should register handover from a carrier to pharmacy', async () => {
@@ -124,12 +117,8 @@ contract('SupplyChain', async (accounts) => {
     expectHandover(actualHandover).toHaveToCategoryThatEquals(pharmacy.category);
     await expectHandover(actualHandover).toHaveWhenEqualToLatestBlockTimestamp();
 
-    await assertTransitConditions(actualDrugItem)({
-      from: carrier1.id,
-      to: pharmacy.id,
-      whenHandoverLogIndex: 1,
-      expectedConditions: carrier1.conditions,
-    });
+    const actualTransitConditions = await getTransitConditions(actualDrugItem, carrier1.id, pharmacy.id, 1);
+    expectTransitConditions(actualTransitConditions).toEqualConditions(carrier1.conditions);
   });
 
   it('should register a subsequent handover from a carrier to another carrier', async () => {
@@ -158,12 +147,8 @@ contract('SupplyChain', async (accounts) => {
     expectHandover(actualHandover).toHaveToCategoryThatEquals(carrier3.category);
     await expectHandover(actualHandover).toHaveWhenEqualToLatestBlockTimestamp();
 
-    await assertTransitConditions(actualDrugItem)({
-      from: carrier2.id,
-      to: carrier3.id,
-      whenHandoverLogIndex: 1,
-      expectedConditions: carrier2.conditions,
-    });
+    const actualTransitConditions = await getTransitConditions(actualDrugItem, carrier2.id, carrier3.id, 1);
+    expectTransitConditions(actualTransitConditions).toEqualConditions(carrier2.conditions);
   });
 
   it('should register a subsequent handover from a carrier to a pharmacy', async () => {
@@ -192,12 +177,8 @@ contract('SupplyChain', async (accounts) => {
     expectHandover(actualHandover).toHaveToCategoryThatEquals(pharmacy.category);
     await expectHandover(actualHandover).toHaveWhenEqualToLatestBlockTimestamp();
 
-    await assertTransitConditions(actualDrugItem)({
-      from: carrier2.id,
-      to: pharmacy.id,
-      whenHandoverLogIndex: 1,
-      expectedConditions: carrier2.conditions,
-    });
+    const actualTransitConditions = await getTransitConditions(actualDrugItem, carrier2.id, pharmacy.id, 1);
+    expectTransitConditions(actualTransitConditions).toEqualConditions(carrier2.conditions);
   });
 
   it('should not allow registering handover of an unknown drug item', async () => {

@@ -2,7 +2,8 @@ const {
   expect,
   expectHandover,
   expectDrugItem,
-  assertTransitConditions,
+  expectTransitConditions,
+  getTransitConditions,
   participants,
   participantCategories,
   carrierCategories,
@@ -41,14 +42,10 @@ contract('DrugItem', async (accounts) => {
     await expectHandover(actualHandover).toHaveWhenEqualToLatestBlockTimestamp();
 
     // no transit conditions should be present
-    await assertTransitConditions(actual)({
-      from: vendor.id,
-      to: carrier.id,
-      whenHandoverLogIndex: 0,
-      expectedConditions: {
-        temperature: 0,
-        category: carrierCategories.NotApplicable,
-      },
+    const actualTransitConditions = await getTransitConditions(actual, vendor.id, carrier.id, 0);
+    expectTransitConditions(actualTransitConditions).toEqualConditions({
+      temperature: 0,
+      category: carrierCategories.NotApplicable,
     });
   });
 
@@ -175,11 +172,7 @@ contract('DrugItem', async (accounts) => {
       carrier.conditions.category,
     );
     // then
-    await assertTransitConditions(sut)({
-      from: carrier.id,
-      to: pharmacy.id,
-      whenHandoverLogIndex: 0,
-      expectedConditions: carrier.conditions,
-    });
+    const actualTransitConditions = await getTransitConditions(sut, carrier.id, pharmacy.id, 1);
+    expectTransitConditions(actualTransitConditions).toEqualConditions(carrier.conditions);
   });
 });
