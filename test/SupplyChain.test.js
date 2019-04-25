@@ -56,21 +56,26 @@ contract('SupplyChain', async (accounts) => {
     // given
     await sut.registerInitialHandover(drugItemIdBytes, carrier1.id, carrier1.category, { from: vendor.id });
     // when
-    const promise = sut.registerInitialHandover(drugItemIdBytes, carrier1.id, carrier1.category, { from: vendor.id });
+    const initialHandoverRegistration = sut.registerInitialHandover(
+      drugItemIdBytes,
+      carrier1.id,
+      carrier1.category,
+      { from: vendor.id },
+    );
     // then
-    await expect(promise).to.be.rejectedWith('Given drug item is already known');
+    await expect(initialHandoverRegistration).to.be.rejectedWith('Given drug item is already known');
   });
 
   it('should not allow uknown vendor to register an initial handover', async () => {
     // when
-    const promise = sut.registerInitialHandover(
+    const initialHandoverRegistration = sut.registerInitialHandover(
       drugItemIdBytes,
       carrier1.id,
       carrier1.category,
       { from: unknownVendor.id },
     );
     // then
-    await expect(promise).to.be.rejectedWith('Transaction sender is an unknown vendor');
+    await expect(initialHandoverRegistration).to.be.rejectedWith('Transaction sender is an unknown vendor');
   });
 
   it('should register handover from a carrier to another carrier', async () => {
@@ -183,13 +188,13 @@ contract('SupplyChain', async (accounts) => {
 
   it('should not allow registering handover of an unknown drug item', async () => {
     // when
-    const promise = sut.registerHandover(
+    const handoverRegistration = sut.registerHandover(
       drugItemIdBytes,
       carrier2.id, carrier2.category,
       carrier1.conditions.temperature, carrier1.conditions.category,
       { from: carrier1.id },
     );
     // then
-    await expect(promise).to.be.rejectedWith('Given drug item is unknown');
+    await expect(handoverRegistration).to.be.rejectedWith('Given drug item is unknown');
   });
 });

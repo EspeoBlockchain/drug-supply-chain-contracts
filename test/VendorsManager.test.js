@@ -38,17 +38,17 @@ contract('VendorsManager', async (accounts) => {
 
   it('should not allow non-owner to register a vendor', async () => {
     // when
-    const promise = sut.registerVendor(vendor, { from: vendor });
+    const vendorRegistration = sut.registerVendor(vendor, { from: vendor });
     // then
-    await expect(promise).to.be.rejected;
+    await expect(vendorRegistration).to.be.rejected;
   });
 
   it('should not allow non-owner to deregister a vendor', async () => {
     // given
     await sut.registerVendor(vendor);
     // when
-    const promise = sut.deregisterVendor(vendor, { from: vendor });
+    const vendorDeregistration = sut.deregisterVendor(vendor, { from: vendor });
     // then
-    await expect(promise).to.be.rejected;
+    await expect(vendorDeregistration).to.be.rejected;
   });
 });
