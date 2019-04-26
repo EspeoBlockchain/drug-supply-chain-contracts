@@ -1,9 +1,21 @@
 const expect = require('./expect');
-const participantTypes = require('./participantTypes');
-const transporterTypes = require('./transporterTypes');
+const expectBignumber = require('./expectBignumber');
+const expectHandover = require('./expectHandover');
+const expectDrugItem = require('./expectDrugItem');
+const expectTransitConditions = require('./expectTransitConditions');
+const getTransitConditions = require('./getTransitConditions');
+const participants = require('./participants');
+const participantCategories = require('./participantCategories');
+const carrierCategories = require('./carrierCategories');
 
 module.exports = {
   expect,
-  participantTypes,
-  transporterTypes,
+  expectBignumber,
+  expectHandover,
+  expectDrugItem,
+  expectTransitConditions,
+  getTransitConditions,
+  participants,
+  participantCategories,
+  carrierCategories,
 };

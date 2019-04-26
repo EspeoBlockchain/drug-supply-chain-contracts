@@ -1,124 +1,214 @@
-const { expect, participantTypes, transporterTypes } = require('./common');
+const {
+  expect,
+  expectHandover,
+  expectDrugItem,
+  expectTransitConditions,
+  getTransitConditions,
+  participants,
+  carrierCategories,
+} = require('./common');
 
 const SupplyChain = artifacts.require('SupplyChain');
-const Package = artifacts.require('Package');
+const DrugItem = artifacts.require('DrugItem');
 const { hexToBytes, randomHex } = web3.utils;
 
 contract('SupplyChain', async (accounts) => {
-  const packageId = randomHex(32);
-  const packageIdBytes = hexToBytes(packageId);
-  const transporter = participantTypes.Transporter;
-  const temperature = -20;
-  const transporterType = transporterTypes.Truck;
-  const producer = accounts[1];
-  const firstParticipant = accounts[2];
-  const secondParticipant = accounts[3];
-  const thirdParticipant = accounts[4];
+  const drugItemId = randomHex(32);
+  const drugItemIdBytes = hexToBytes(drugItemId);
+
+  const vendor = participants.vendor(accounts[1]);
+  const carrier1 = participants.carrier(accounts[2], carrierCategories.Truck);
+  const carrier2 = participants.carrier(accounts[3], carrierCategories.Ship);
+  const carrier3 = participants.carrier(accounts[4], carrierCategories.Airplane);
+  const pharmacy = participants.pharmacy(accounts[5]);
+  const unknownVendor = participants.vendor(accounts[6]);
 
   let sut;
 
   beforeEach(async () => {
     // given
     sut = await SupplyChain.new();
-    await sut.registerProducer(producer);
+    await sut.registerVendor(vendor.id);
   });
 
-  it('should register initial transfer from a producer', async () => {
+  it('should register initial handover from a vendor', async () => {
     // when
-    await sut.registerInitialTransfer(packageIdBytes, firstParticipant, transporter, { from: producer });
+    await sut.registerInitialHandover(drugItemIdBytes, carrier1.id, carrier1.category, { from: vendor.id });
     // then
-    const packageAddress = await sut.getPackage(packageIdBytes);
-    const actual = await Package.at(packageAddress);
-    await expect(actual.packageId()).to.eventually.equal(packageId);
+    const drugItemAddress = await sut.getDrugItem(drugItemIdBytes);
+    const actualDrugItem = await DrugItem.at(drugItemAddress);
+    await expect(actualDrugItem.drugItemId()).to.eventually.equal(drugItemId);
+
+    await expectDrugItem(actualDrugItem).toHaveHandoverCountThatEquals(1);
+    const actualHandover = await actualDrugItem.handoverLog(0);
+    expectHandover(actualHandover).toHaveToIdThatEquals(carrier1.id);
+    expectHandover(actualHandover).toHaveToCategoryThatEquals(carrier1.category);
+    await expectHandover(actualHandover).toHaveWhenEqualToLatestBlockTimestamp();
+
+    const actualTransitConditions = await getTransitConditions(actualDrugItem, vendor.id, carrier1.id, 0);
+    expectTransitConditions(actualTransitConditions).toEqualConditions({
+      temperature: 0,
+      category: carrierCategories.NotApplicable,
+    });
   });
 
-  it('should not allow registering same package twice', async () => {
+  it('should not allow registering same drug item twice', async () => {
     // given
-    await sut.registerInitialTransfer(packageIdBytes, firstParticipant, transporter, { from: producer });
+    await sut.registerInitialHandover(drugItemIdBytes, carrier1.id, carrier1.category, { from: vendor.id });
     // when
-    const promise = sut.registerInitialTransfer(packageIdBytes, firstParticipant, transporter, { from: producer });
-    // then
-    await expect(promise).to.be.rejectedWith('Given packageId is already known');
-  });
-
-  it('should not allow uknown producer to register an initial transfer', async () => {
-    // when
-    const promise = sut.registerInitialTransfer(packageIdBytes, firstParticipant, transporter, { from: accounts[9] });
-    // then
-    await expect(promise).to.be.rejectedWith('Transaction sender is an unknown producer');
-  });
-
-  Object.entries(participantTypes).forEach(([name, type]) => {
-    it(`should register transfer from a transporter to a ${name}`, async () => {
-      // given
-      await sut.registerInitialTransfer(packageIdBytes, firstParticipant, type, { from: producer });
-      // when
-      await sut.registerTransfer(
-        packageIdBytes,
-        secondParticipant, type,
-        temperature, transporterType,
-        { from: firstParticipant },
-      );
-      // then
-      const packageAddress = await sut.getPackage(packageIdBytes);
-      const actualPackage = await Package.at(packageAddress);
-
-      const actualTransferCount = await actualPackage.getTransferCount();
-      expect(actualTransferCount).to.be.a.bignumber.that.equals('2');
-
-      const actualTransfer = await actualPackage.transferLog(1);
-      expect(actualTransfer.from).to.equal(firstParticipant);
-      expect(actualTransfer.to).to.equal(secondParticipant);
-      expect(actualTransfer.when).to.be.a.bignumber.that.equals(`${(await web3.eth.getBlock('latest')).timestamp}`);
-      expect(actualTransfer.participantType).to.be.a.bignumber.that.equals(`${type}`);
-      expect(actualTransfer.conditions.temperature).to.equal(`${temperature}`);
-      expect(actualTransfer.conditions.transporterType).to.equal(`${transporterType}`);
-    });
-
-    it(`should register a subsequent transfer from a transporter to ${name}`, async () => {
-      // given
-      await sut.registerInitialTransfer(packageIdBytes, firstParticipant, type, { from: producer });
-      await sut.registerTransfer(
-        packageIdBytes,
-        secondParticipant, transporter,
-        temperature, transporterType,
-        { from: firstParticipant },
-      );
-      const secondTemperature = -19;
-      const secondTransporterType = transporterTypes.Airplane;
-      // when
-      await sut.registerTransfer(
-        packageIdBytes,
-        thirdParticipant, type,
-        secondTemperature, secondTransporterType,
-        { from: secondParticipant },
-      );
-      // then
-      const packageAddress = await sut.getPackage(packageIdBytes);
-      const actualPackage = await Package.at(packageAddress);
-
-      const actualTransferCount = await actualPackage.getTransferCount();
-      expect(actualTransferCount).to.be.a.bignumber.that.equals('3');
-
-      const actualTransfer = await actualPackage.transferLog(2);
-      expect(actualTransfer.from).to.equal(secondParticipant);
-      expect(actualTransfer.to).to.equal(thirdParticipant);
-      expect(actualTransfer.when).to.be.a.bignumber.that.equals(`${(await web3.eth.getBlock('latest')).timestamp}`);
-      expect(actualTransfer.participantType).to.be.a.bignumber.that.equals(`${type}`);
-      expect(actualTransfer.conditions.temperature).to.equal(`${secondTemperature}`);
-      expect(actualTransfer.conditions.transporterType).to.equal(`${secondTransporterType}`);
-    });
-  });
-
-  it('should not allow registering transfer of an unknown package', async () => {
-    // when
-    const promise = sut.registerTransfer(
-      packageIdBytes,
-      secondParticipant, transporter,
-      temperature, transporterType,
-      { from: firstParticipant },
+    const initialHandoverRegistration = sut.registerInitialHandover(
+      drugItemIdBytes,
+      carrier1.id,
+      carrier1.category,
+      { from: vendor.id },
     );
     // then
-    await expect(promise).to.be.rejectedWith('Given packageId is unknown');
+    await expect(initialHandoverRegistration).to.be.rejectedWith('Given drug item is already known');
+  });
+
+  it('should not allow uknown vendor to register an initial handover', async () => {
+    // when
+    const initialHandoverRegistration = sut.registerInitialHandover(
+      drugItemIdBytes,
+      carrier1.id,
+      carrier1.category,
+      { from: unknownVendor.id },
+    );
+    // then
+    await expect(initialHandoverRegistration).to.be.rejectedWith('Transaction sender is an unknown vendor');
+  });
+
+  it('should register handover from a carrier to another carrier', async () => {
+    // given
+    await sut.registerInitialHandover(drugItemIdBytes, carrier1.id, carrier1.category, { from: vendor.id });
+    // when
+    await sut.registerHandover(
+      drugItemIdBytes,
+      carrier2.id,
+      carrier2.category,
+      carrier1.conditions.temperature,
+      carrier1.conditions.category,
+      { from: carrier1.id },
+    );
+    // then
+    const drugItemAddress = await sut.getDrugItem(drugItemIdBytes);
+    const actualDrugItem = await DrugItem.at(drugItemAddress);
+
+    await expectDrugItem(actualDrugItem).toHaveHandoverCountThatEquals(2);
+    const actualHandover = await actualDrugItem.handoverLog(1);
+    expectHandover(actualHandover).toHaveToIdThatEquals(carrier2.id);
+    expectHandover(actualHandover).toHaveToCategoryThatEquals(carrier2.category);
+    await expectHandover(actualHandover).toHaveWhenEqualToLatestBlockTimestamp();
+
+    const actualTransitConditions = await getTransitConditions(actualDrugItem, carrier1.id, carrier2.id, 1);
+    expectTransitConditions(actualTransitConditions).toEqualConditions(carrier1.conditions);
+  });
+
+  it('should register handover from a carrier to pharmacy', async () => {
+    // given
+    await sut.registerInitialHandover(drugItemIdBytes, carrier1.id, carrier1.category, { from: vendor.id });
+    // when
+    await sut.registerHandover(
+      drugItemIdBytes,
+      pharmacy.id,
+      pharmacy.category,
+      carrier1.conditions.temperature,
+      carrier1.conditions.category,
+      { from: carrier1.id },
+    );
+    // then
+    const drugItemAddress = await sut.getDrugItem(drugItemIdBytes);
+    const actualDrugItem = await DrugItem.at(drugItemAddress);
+
+    await expectDrugItem(actualDrugItem).toHaveHandoverCountThatEquals(2);
+    const actualHandover = await actualDrugItem.handoverLog(1);
+    expectHandover(actualHandover).toHaveToIdThatEquals(pharmacy.id);
+    expectHandover(actualHandover).toHaveToCategoryThatEquals(pharmacy.category);
+    await expectHandover(actualHandover).toHaveWhenEqualToLatestBlockTimestamp();
+
+    const actualTransitConditions = await getTransitConditions(actualDrugItem, carrier1.id, pharmacy.id, 1);
+    expectTransitConditions(actualTransitConditions).toEqualConditions(carrier1.conditions);
+  });
+
+  it('should register a subsequent handover from a carrier to another carrier', async () => {
+    // given
+    await sut.registerInitialHandover(drugItemIdBytes, carrier1.id, carrier1.category, { from: vendor.id });
+    await sut.registerHandover(
+      drugItemIdBytes,
+      carrier2.id,
+      carrier2.category,
+      carrier1.conditions.temperature,
+      carrier1.conditions.category,
+      { from: carrier1.id },
+    );
+    // when
+    await sut.registerHandover(
+      drugItemIdBytes,
+      carrier3.id,
+      carrier3.category,
+      carrier2.conditions.temperature,
+      carrier2.conditions.category,
+      { from: carrier2.id },
+    );
+    // then
+    const drugItemAddress = await sut.getDrugItem(drugItemIdBytes);
+    const actualDrugItem = await DrugItem.at(drugItemAddress);
+
+    await expectDrugItem(actualDrugItem).toHaveHandoverCountThatEquals(3);
+    const actualHandover = await actualDrugItem.handoverLog(2);
+    expectHandover(actualHandover).toHaveToIdThatEquals(carrier3.id);
+    expectHandover(actualHandover).toHaveToCategoryThatEquals(carrier3.category);
+    await expectHandover(actualHandover).toHaveWhenEqualToLatestBlockTimestamp();
+
+    const actualTransitConditions = await getTransitConditions(actualDrugItem, carrier2.id, carrier3.id, 1);
+    expectTransitConditions(actualTransitConditions).toEqualConditions(carrier2.conditions);
+  });
+
+  it('should register a subsequent handover from a carrier to a pharmacy', async () => {
+    // given
+    await sut.registerInitialHandover(drugItemIdBytes, carrier1.id, carrier1.category, { from: vendor.id });
+    await sut.registerHandover(
+      drugItemIdBytes,
+      carrier2.id,
+      carrier2.category,
+      carrier1.conditions.temperature,
+      carrier1.conditions.category,
+      { from: carrier1.id },
+    );
+    // when
+    await sut.registerHandover(
+      drugItemIdBytes,
+      pharmacy.id,
+      pharmacy.category,
+      carrier2.conditions.temperature,
+      carrier2.conditions.category,
+      { from: carrier2.id },
+    );
+    // then
+    const drugItemAddress = await sut.getDrugItem(drugItemIdBytes);
+    const actualDrugItem = await DrugItem.at(drugItemAddress);
+
+    await expectDrugItem(actualDrugItem).toHaveHandoverCountThatEquals(3);
+    const actualHandover = await actualDrugItem.handoverLog(2);
+    expectHandover(actualHandover).toHaveToIdThatEquals(pharmacy.id);
+    expectHandover(actualHandover).toHaveToCategoryThatEquals(pharmacy.category);
+    await expectHandover(actualHandover).toHaveWhenEqualToLatestBlockTimestamp();
+
+    const actualTransitConditions = await getTransitConditions(actualDrugItem, carrier2.id, pharmacy.id, 1);
+    expectTransitConditions(actualTransitConditions).toEqualConditions(carrier2.conditions);
+  });
+
+  it('should not allow registering handover of an unknown drug item', async () => {
+    // when
+    const handoverRegistration = sut.registerHandover(
+      drugItemIdBytes,
+      carrier2.id,
+      carrier2.category,
+      carrier1.conditions.temperature,
+      carrier1.conditions.category,
+      { from: carrier1.id },
+    );
+    // then
+    await expect(handoverRegistration).to.be.rejectedWith('Given drug item is unknown');
   });
 });

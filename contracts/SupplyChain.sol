@@ -1,45 +1,51 @@
 pragma solidity 0.5.7;
+pragma experimental ABIEncoderV2;
 
-import "./Package.sol";
-import "./ProducersManager.sol";
+import "./DrugItem.sol";
+import "./VendorsManager.sol";
 
 
-contract SupplyChain is ProducersManager {
+contract SupplyChain is VendorsManager {
 
-    mapping(bytes => Package) private packages;
+    mapping(bytes32 => DrugItem) private items;
 
-    function getPackage(bytes memory _packageId) public view returns (Package) {
-        return packages[_packageId];
+    function getDrugItem(bytes32 _drugItemId) public view returns (DrugItem) {
+        return items[_drugItemId];
     }
 
-    function registerInitialTransfer(bytes memory _packageId, address _to, Package.ParticipantType _participant)
-        public
-        onlyNewPackage(_packageId)
-        onlyKnownProducer
-    {
-        packages[_packageId] = new Package(_packageId, msg.sender, _to, _participant);
-    }
-
-    function registerTransfer(
-        bytes memory _packageId,
+    function registerInitialHandover(
+        bytes32 _drugItemId,
         address _to,
-        Package.ParticipantType _participant,
-        int8 _temperature,
-        Package.TransporterType _transporter
+        DrugItem.ParticipantCategory _participantCategory
     )
         public
-        onlyKnownPackage(_packageId)
+        onlyNewDrugItem(_drugItemId)
+        onlyKnownVendor
     {
-        packages[_packageId].logTransfer(msg.sender, _to, _participant, _temperature, _transporter);
+        items[_drugItemId] = new DrugItem(_drugItemId, msg.sender, _to, _participantCategory);
     }
 
-    modifier onlyNewPackage(bytes memory _packageId) {
-        require(address(packages[_packageId]) == address(0), "Given packageId is already known");
+    function registerHandover(
+        bytes32 _drugItemId,
+        address _to,
+        DrugItem.ParticipantCategory _participantCategory,
+        int8 _temperature,
+        DrugItem.TransitCategory _transitCategory
+    )
+        public
+        onlyKnownDrugItem(_drugItemId)
+    {
+        items[_drugItemId].logHandover(_to, _participantCategory);
+        items[_drugItemId].logTransitConditions(msg.sender, _to, now, _temperature, _transitCategory);
+    }
+
+    modifier onlyNewDrugItem(bytes32 _drugItemId) {
+        require(address(items[_drugItemId]) == address(0), "Given drug item is already known");
         _;
     }
 
-    modifier onlyKnownPackage(bytes memory _packageId) {
-        require(address(packages[_packageId]) != address(0), "Given packageId is unknown");
+    modifier onlyKnownDrugItem(bytes32 _drugItemId) {
+        require(address(items[_drugItemId]) != address(0), "Given drug item is unknown");
         _;
     }
 }
