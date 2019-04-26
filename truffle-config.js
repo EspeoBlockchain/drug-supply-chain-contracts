@@ -6,7 +6,7 @@ module.exports = {
   networks: {
     ropsten: {
       provider: () => new HDWalletProvider(
-        process.env.PRIVATE_KEY || process.env.MNEMONIC,
+        process.env.PRIVATE_KEY,
         process.env.ROPSTEN_PROVIDER_URL,
       ),
       network_id: '3',

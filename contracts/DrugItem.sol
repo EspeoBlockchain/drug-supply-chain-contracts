@@ -24,12 +24,12 @@ contract DrugItem is Secondary {
     enum ParticipantCategory { Vendor, Carrier, Pharmacy }
     enum TransitCategory { NotApplicable, Airplane, Ship, Truck }
 
-    bytes public drugItemId;
+    bytes32 public drugItemId;
     address public vendor;
     Handover[] public handoverLog;
     mapping(bytes32 => TransitConditions) private transitConditionsLog;
 
-    constructor(bytes memory _drugItemId, address _vendor, address _to, ParticipantCategory _participantCategory)
+    constructor(bytes32 _drugItemId, address _vendor, address _to, ParticipantCategory _participantCategory)
         public
         notEmptyDrugItemId(_drugItemId)
     {
@@ -54,7 +54,6 @@ contract DrugItem is Secondary {
         onlyPrimary
     {
         require(_participantCategory != ParticipantCategory.Vendor, "Drug item can't be handed over back to any vendor");
-        // solium-disable-next-line security/no-block-members
         handoverLog.push(Handover(Participant(_to, _participantCategory), now));
     }
 
@@ -75,8 +74,8 @@ contract DrugItem is Secondary {
         return keccak256(abi.encodePacked(_from, _to, _when));
     }
 
-    modifier notEmptyDrugItemId(bytes memory _drugItemId) {
-        require(_drugItemId.length > 0, "Given drugItemId is empty");
+    modifier notEmptyDrugItemId(bytes32 _drugItemId) {
+        require(_drugItemId != 0, "Given drugItemId is empty");
         _;
     }
 }

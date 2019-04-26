@@ -7,14 +7,14 @@ import "./VendorsManager.sol";
 
 contract SupplyChain is VendorsManager {
 
-    mapping(bytes => DrugItem) private items;
+    mapping(bytes32 => DrugItem) private items;
 
-    function getDrugItem(bytes memory _drugItemId) public view returns (DrugItem) {
+    function getDrugItem(bytes32 _drugItemId) public view returns (DrugItem) {
         return items[_drugItemId];
     }
 
     function registerInitialHandover(
-        bytes memory _drugItemId,
+        bytes32 _drugItemId,
         address _to,
         DrugItem.ParticipantCategory _participantCategory
     )
@@ -26,7 +26,7 @@ contract SupplyChain is VendorsManager {
     }
 
     function registerHandover(
-        bytes memory _drugItemId,
+        bytes32 _drugItemId,
         address _to,
         DrugItem.ParticipantCategory _participantCategory,
         int8 _temperature,
@@ -36,16 +36,15 @@ contract SupplyChain is VendorsManager {
         onlyKnownDrugItem(_drugItemId)
     {
         items[_drugItemId].logHandover(_to, _participantCategory);
-        uint when = items[_drugItemId].getLastHandover().when;
-        items[_drugItemId].logTransitConditions(msg.sender, _to, when, _temperature, _transitCategory);
+        items[_drugItemId].logTransitConditions(msg.sender, _to, now, _temperature, _transitCategory);
     }
 
-    modifier onlyNewDrugItem(bytes memory _drugItemId) {
+    modifier onlyNewDrugItem(bytes32 _drugItemId) {
         require(address(items[_drugItemId]) == address(0), "Given drug item is already known");
         _;
     }
 
-    modifier onlyKnownDrugItem(bytes memory _drugItemId) {
+    modifier onlyKnownDrugItem(bytes32 _drugItemId) {
         require(address(items[_drugItemId]) != address(0), "Given drug item is unknown");
         _;
     }
