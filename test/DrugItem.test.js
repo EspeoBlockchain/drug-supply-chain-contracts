@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 const {
   expect,
   expectHandover,
@@ -139,6 +140,15 @@ contract('DrugItem', async (accounts) => {
     await expect(promise).to.be.rejected;
   });
 
+  it('should not allow a handover from participant other than the last handover\'s "to" participant', async () => {
+    // given
+    const sut = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, carrier.category);
+    // when
+    const handoverLog = sut.logHandover(otherAccount, pharmacy.id, pharmacy.category);
+    // then
+    await expect(handoverLog).to.be.rejectedWith('Handover must be done by the current drug item owner');
+  });
+
   it('should return the only handover after initial handover', async () => {
     // given
     const sut = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, carrier.category);
@@ -182,12 +192,53 @@ contract('DrugItem', async (accounts) => {
     expectTransitConditions(actualTransitConditions).toEqualConditions(carrier.conditions);
   });
 
-  it('should not allow a handover from account other than the last handover "to" account', async () => {
+  it('should not allow logging transing conditions from participant other than the second to last handover\'s "to" participant', async () => {
     // given
     const sut = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, carrier.category);
+    await sut.logHandover(carrier.id, pharmacy.id, pharmacy.category);
+    const { when } = await sut.getLastHandover();
     // when
-    const handover = sut.logHandover(otherAccount, pharmacy.id, pharmacy.category);
+    const transitConditionsLog = sut.logTransitConditions(
+      otherAccount,
+      pharmacy.id,
+      when,
+      carrier.conditions.temperature,
+      carrier.conditions.category,
+    );
     // then
-    await expect(handover).to.be.rejectedWith('Handover must be done by the current drug item owner');
+    await expect(transitConditionsLog).to.be.rejectedWith('Transit conditions can be logged only for the last handover');
+  });
+
+  it('should not allow logging transing conditions to participant other than the last handover\'s "to" participant', async () => {
+    // given
+    const sut = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, carrier.category);
+    await sut.logHandover(carrier.id, pharmacy.id, pharmacy.category);
+    const { when } = await sut.getLastHandover();
+    // when
+    const transitConditionsLog = sut.logTransitConditions(
+      carrier.id,
+      otherAccount,
+      when,
+      carrier.conditions.temperature,
+      carrier.conditions.category,
+    );
+    // then
+    await expect(transitConditionsLog).to.be.rejectedWith('Transit conditions can be logged only for the last handover');
+  });
+
+  it('should not allow logging transing conditions for time different than the last handover\'s time', async () => {
+    // given
+    const sut = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, carrier.category);
+    await sut.logHandover(carrier.id, pharmacy.id, pharmacy.category);
+    // when
+    const transitConditionsLog = sut.logTransitConditions(
+      carrier.id,
+      pharmacy.id,
+      999999,
+      carrier.conditions.temperature,
+      carrier.conditions.category,
+    );
+    // then
+    await expect(transitConditionsLog).to.be.rejectedWith('Transit conditions can be logged only for the last handover');
   });
 });

@@ -63,6 +63,15 @@ contract DrugItem is Secondary {
         public
         onlyPrimary
     {
+        uint length = handoverLog.length;
+        require(
+            length > 1 &&
+                handoverLog[length - 2].to.id == _from &&
+                handoverLog[length - 1].to.id == _to &&
+                handoverLog[length - 1].when == _when,
+            "Transit conditions can be logged only for the last handover"
+        );
+
         bytes32 key = getTransitConditionsKey(_from, _to, _when);
         transitConditionsLog[key] = TransitConditions(_temperature, _transitCategory);
     }
