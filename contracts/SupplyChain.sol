@@ -35,7 +35,7 @@ contract SupplyChain is VendorsManager {
         public
         onlyKnownDrugItem(_drugItemId)
     {
-        items[_drugItemId].logHandover(_to, _participantCategory);
+        items[_drugItemId].logHandover(msg.sender, _to, _participantCategory);
         items[_drugItemId].logTransitConditions(msg.sender, _to, now, _temperature, _transitCategory);
     }
 

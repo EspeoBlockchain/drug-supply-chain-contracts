@@ -35,7 +35,7 @@ contract DrugItem is Secondary {
     {
         drugItemId = _drugItemId;
         vendor = _vendor;
-        logHandover(_to, _participantCategory);
+        logHandover(_vendor, _to, _participantCategory);
     }
 
     function getHandoverCount() public view returns (uint256) {
@@ -47,6 +47,7 @@ contract DrugItem is Secondary {
     }
 
     function logHandover(
+        address _from,
         address _to,
         ParticipantCategory _participantCategory
     )
@@ -54,6 +55,7 @@ contract DrugItem is Secondary {
         onlyPrimary
     {
         require(_participantCategory != ParticipantCategory.Vendor, "Drug item can't be handed over back to any vendor");
+        require(handoverLog.length == 0 || getLastHandover().to.id == _from, "Handover must be done by the current drug item owner");
         handoverLog.push(Handover(Participant(_to, _participantCategory), now));
     }
 

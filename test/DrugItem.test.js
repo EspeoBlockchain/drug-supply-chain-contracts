@@ -18,6 +18,7 @@ contract('DrugItem', async (accounts) => {
   const vendor = participants.vendor(accounts[1]);
   const carrier = participants.carrier(accounts[2]);
   const pharmacy = participants.pharmacy(accounts[3]);
+  const otherAccount = accounts[9];
 
   it('should set the creator as the primary', async () => {
     // when
@@ -73,6 +74,7 @@ contract('DrugItem', async (accounts) => {
     const sut = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, carrier.category);
     // when
     const promise = sut.logHandover(
+      carrier.id,
       pharmacy.id,
       participantCategories.Vendor,
     );
@@ -99,6 +101,7 @@ contract('DrugItem', async (accounts) => {
     const sut = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, carrier.category);
     // when
     await sut.logHandover(
+      carrier.id,
       pharmacy.id,
       pharmacy.category,
     );
@@ -115,9 +118,10 @@ contract('DrugItem', async (accounts) => {
     const sut = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, carrier.category);
     // when
     const promise = sut.logHandover(
+      carrier.id,
       pharmacy.id,
       pharmacy.category,
-      { from: pharmacy.id },
+      { from: otherAccount },
     );
     // then
     await expect(promise).to.be.rejected;
@@ -150,7 +154,7 @@ contract('DrugItem', async (accounts) => {
   it('should return the last handover after a sequence of handovers', async () => {
     // given
     const sut = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, carrier.category);
-    await sut.logHandover(pharmacy.id, pharmacy.category);
+    await sut.logHandover(carrier.id, pharmacy.id, pharmacy.category);
     // when
     const actualHandover = await sut.getLastHandover();
     // then
@@ -163,7 +167,7 @@ contract('DrugItem', async (accounts) => {
   it('should log transit conditions', async () => {
     // given
     const sut = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, carrier.category);
-    await sut.logHandover(pharmacy.id, pharmacy.category);
+    await sut.logHandover(carrier.id, pharmacy.id, pharmacy.category);
     const { when } = await sut.getLastHandover();
     // when
     await sut.logTransitConditions(
@@ -176,5 +180,14 @@ contract('DrugItem', async (accounts) => {
     // then
     const actualTransitConditions = await getTransitConditions(sut, carrier.id, pharmacy.id, 1);
     expectTransitConditions(actualTransitConditions).toEqualConditions(carrier.conditions);
+  });
+
+  it('should not allow a handover from account other than the last handover "to" account', async () => {
+    // given
+    const sut = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, carrier.category);
+    // when
+    const handover = sut.logHandover(otherAccount, pharmacy.id, pharmacy.category);
+    // then
+    await expect(handover).to.be.rejectedWith('Handover must be done by the current drug item owner');
   });
 });
