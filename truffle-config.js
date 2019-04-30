@@ -11,6 +11,11 @@ module.exports = {
       ),
       network_id: '3',
     },
+    ganache: {
+      host: '127.0.0.1',
+      port: 8545,
+      network_id: '*', // match any network
+    },
   },
   compilers: {
     solc: {

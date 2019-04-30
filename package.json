@@ -8,6 +8,7 @@
     "lint": "solium -d contracts && eslint test/ migrations/",
     "test": "truffle test",
     "migrate:ropsten": "truffle migrate --network ropsten",
+    "migrate:ganache": "truffle migrate --network ganache",
     "flatten": "mkdir -p build/flat && truffle-flattener contracts/$CONTRACT_NAME.sol > build/flat/$CONTRACT_NAME.flat.sol"
   },
   "repository": {
