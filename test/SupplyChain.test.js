@@ -3,9 +3,11 @@ const {
   expectHandover,
   expectDrugItem,
   expectTransitConditions,
+  expectPurchasabilityCodes,
   getTransitConditions,
   participants,
   carrierCategories,
+  purchasabilityCodes,
 } = require('./common');
 
 const SupplyChain = artifacts.require('SupplyChain');
@@ -210,5 +212,21 @@ contract('SupplyChain', async (accounts) => {
     );
     // then
     await expect(handoverRegistration).to.be.rejectedWith('Given drug item is unknown');
+  });
+
+  it('should check purchasability of a drug item', async () => {
+    // given
+    await sut.registerInitialHandover(drugItemIdBytes, pharmacy.id, pharmacy.category, { from: vendor.id });
+    // when
+    const actualCodes = await sut.isPurchasable(drugItemId);
+    // then
+    expectPurchasabilityCodes(actualCodes).toEqual([purchasabilityCodes.ValidForPurchase]);
+  });
+
+  it('should not allow checking purchasability of unknown drug item', async () => {
+    // when
+    const purchasable = sut.isPurchasable(drugItemId);
+    // then
+    await expect(purchasable).to.be.rejectedWith('Given drug item is unknown');
   });
 });
