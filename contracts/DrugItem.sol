@@ -35,7 +35,7 @@ contract DrugItem is Secondary {
     {
         drugItemId = _drugItemId;
         vendor = _vendor;
-        logHandover(_to, _participantCategory);
+        logHandover(_vendor, _to, _participantCategory);
     }
 
     function getHandoverCount() public view returns (uint256) {
@@ -47,13 +47,21 @@ contract DrugItem is Secondary {
     }
 
     function logHandover(
+        address _from,
         address _to,
         ParticipantCategory _participantCategory
     )
         public
         onlyPrimary
     {
-        require(_participantCategory != ParticipantCategory.Vendor, "Drug item can't be handed over back to any vendor");
+        require(_participantCategory != ParticipantCategory.Vendor, "Drug item can't be handed over to a vendor");
+        require(handoverLog.length == 0 || getLastHandover().to.id == _from, "Handover must be done by the current drug item holder");
+        require(
+            handoverLog.length < 2 ||
+                getLastHandover().to.category != ParticipantCategory.Carrier ||
+                hasTransitConditionsForLastHandover(),
+            "Transit conditions must be logged before next handover"
+        );
         handoverLog.push(Handover(Participant(_to, _participantCategory), now));
     }
 
@@ -61,6 +69,15 @@ contract DrugItem is Secondary {
         public
         onlyPrimary
     {
+        uint length = handoverLog.length;
+        require(
+            length > 1 &&
+                handoverLog[length - 2].to.id == _from &&
+                handoverLog[length - 1].to.id == _to &&
+                handoverLog[length - 1].when == _when,
+            "Transit conditions can be logged only for the last handover"
+        );
+
         bytes32 key = getTransitConditionsKey(_from, _to, _when);
         transitConditionsLog[key] = TransitConditions(_temperature, _transitCategory);
     }
@@ -72,6 +89,13 @@ contract DrugItem is Secondary {
 
     function getTransitConditionsKey(address _from, address _to, uint _when) private pure returns (bytes32) {
         return keccak256(abi.encodePacked(_from, _to, _when));
+    }
+
+    function hasTransitConditionsForLastHandover() private view returns (bool) {
+        address from = handoverLog[handoverLog.length - 2].to.id;
+        address to = getLastHandover().to.id;
+        uint when = getLastHandover().when;
+        return getTransitConditions(from, to, when).category != TransitCategory.NotApplicable;
     }
 
     modifier notEmptyDrugItemId(bytes32 _drugItemId) {
