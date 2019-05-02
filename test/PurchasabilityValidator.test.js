@@ -25,12 +25,8 @@ contract('PurchasabilityValidator', (accounts) => {
     sut = await PurchasabilityValidator.new();
   });
 
-  const logHandover = async (drugItem, from, to) => {
-    await drugItem.logHandover(from.id, to.id, to.category);
-  };
-
   const logHandoverFromCarrier = async (drugItem, from, to) => {
-    await logHandover(drugItem, from, to);
+    await drugItem.logHandover(from.id, to.id, to.category);
     const { when } = await drugItem.getLastHandover();
     await drugItem.logTransitConditions(from.id, to.id, when, from.conditions.temperature, from.conditions.category);
   };
@@ -59,10 +55,52 @@ contract('PurchasabilityValidator', (accounts) => {
     await logHandoverFromCarrier(drugItem, carrier1, carrier2);
     await logHandoverFromCarrier(drugItem, carrier2, carrier1);
     await logHandoverFromCarrier(drugItem, carrier1, carrier2);
-    await logHandover(drugItem, carrier2, pharmacy);
+    await logHandoverFromCarrier(drugItem, carrier2, pharmacy);
     // when
     const actualCodes = await sut.isPurchasable(drugItem.address);
     // then
     expectPurchasabilityCodes(actualCodes).toEqual([purchasabilityCodes.TooManyHandovers]);
+  });
+
+  const carrierWithTemperature = (category, temperature) => {
+    const carrier = participants.carrier(accounts[9], category);
+    carrier.conditions.temperature = temperature;
+    return carrier;
+  };
+
+  const carrierTooHighTemperatureTestCases = [{
+    name: 'ship temperature was above -18 degrees',
+    carrier: carrierWithTemperature(carrierCategories.Ship, -17),
+  }, {
+    name: 'airplace temperature was above -10 degrees',
+    carrier: carrierWithTemperature(carrierCategories.Airplane, -9),
+  }, {
+    name: 'truck temperature was above -18 degrees',
+    carrier: carrierWithTemperature(carrierCategories.Truck, -17),
+  }];
+
+  carrierTooHighTemperatureTestCases.forEach(({ name, carrier }) => {
+    it(`should return error code if ${name}`, async () => {
+      // given
+      const drugItem = await DrugItem.new(drugItemIdBytes, vendor.id, carrier1.id, carrier1.category);
+      await logHandoverFromCarrier(drugItem, carrier1, carrier);
+      await logHandoverFromCarrier(drugItem, carrier, pharmacy);
+      // when
+      const actualCodes = await sut.isPurchasable(drugItem.address);
+      // then
+      expectPurchasabilityCodes(actualCodes).toEqual([purchasabilityCodes.TemperatureTooHigh]);
+    });
+  });
+
+  it('should return error code if temperature dropped below -22 degrees', async () => {
+    // given
+    const carrier = carrierWithTemperature(carrierCategories.Ship, -23);
+    const drugItem = await DrugItem.new(drugItemIdBytes, vendor.id, carrier1.id, carrier1.category);
+    await logHandoverFromCarrier(drugItem, carrier1, carrier);
+    await logHandoverFromCarrier(drugItem, carrier, pharmacy);
+    // when
+    const actualCodes = await sut.isPurchasable(drugItem.address);
+    // then
+    expectPurchasabilityCodes(actualCodes).toEqual([purchasabilityCodes.TemperatureTooLow]);
   });
 });
