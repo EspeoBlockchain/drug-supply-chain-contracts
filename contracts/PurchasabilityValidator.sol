@@ -10,6 +10,7 @@ contract PurchasabilityValidator {
     uint8 public TOO_MANY_HANDOVERS = 201;
     uint8 public TEMPERATURE_TOO_HIGH = 202;
     uint8 public TEMPERATURE_TOO_LOW = 203;
+    uint8 public TOTAL_TRANSIT_TIME_TOO_LONG = 204;
 
     function isPurchasable(DrugItem _drugItem) public view returns (uint8[] memory result) {
         result = new uint8[](10); // TODO array size should be the maximum number of errors
@@ -48,6 +49,13 @@ contract PurchasabilityValidator {
                 result[errorCount] = TEMPERATURE_TOO_LOW;
                 errorCount++;
             }
+        }
+
+        (, uint start) = _drugItem.handoverLog(0);
+        uint stop = _drugItem.getLastHandover().when;
+        if (stop - start > 8 days) {
+            result[errorCount] = TOTAL_TRANSIT_TIME_TOO_LONG;
+            errorCount++;
         }
 
         if (errorCount == 0) {

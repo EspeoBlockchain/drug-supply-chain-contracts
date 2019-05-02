@@ -9,10 +9,10 @@ const PurchasabilityValidator = artifacts.require('PurchasabilityValidator');
 const DrugItem = artifacts.require('DrugItem');
 const { hexToBytes, randomHex } = web3.utils;
 
-
 contract('PurchasabilityValidator', (accounts) => {
   const drugItemId = randomHex(32);
   const drugItemIdBytes = hexToBytes(drugItemId);
+  const day = 24 * 3600;
 
   const vendor = participants.vendor(accounts[1]);
   const carrier1 = participants.carrier(accounts[2], carrierCategories.Truck);
@@ -94,13 +94,26 @@ contract('PurchasabilityValidator', (accounts) => {
 
   it('should return error code if temperature dropped below -22 degrees', async () => {
     // given
-    const carrier = carrierWithTemperature(carrierCategories.Ship, -23);
     const drugItem = await DrugItem.new(drugItemIdBytes, vendor.id, carrier1.id, carrier1.category);
+    const carrier = carrierWithTemperature(carrierCategories.Ship, -23);
     await logHandoverFromCarrier(drugItem, carrier1, carrier);
     await logHandoverFromCarrier(drugItem, carrier, pharmacy);
     // when
     const actualCodes = await sut.isPurchasable(drugItem.address);
     // then
     expectPurchasabilityCodes(actualCodes).toEqual([purchasabilityCodes.TemperatureTooLow]);
+  });
+
+  it('should return error code if transit took more than 8 days', async () => {
+    // given
+    const drugItem = await DrugItem.new(drugItemIdBytes, vendor.id, carrier1.id, carrier1.category);
+    await web3.evm.increaseTime(4 * day);
+    await logHandoverFromCarrier(drugItem, carrier1, carrier2);
+    await web3.evm.increaseTime(5 * day);
+    await logHandoverFromCarrier(drugItem, carrier2, pharmacy);
+    // when
+    const actualCodes = await sut.isPurchasable(drugItem.address);
+    // then
+    expectPurchasabilityCodes(actualCodes).toEqual([purchasabilityCodes.TotalTransitTimeTooLong]);
   });
 });

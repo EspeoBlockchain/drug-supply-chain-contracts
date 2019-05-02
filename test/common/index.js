@@ -10,6 +10,8 @@ const participantCategories = require('./participantCategories');
 const carrierCategories = require('./carrierCategories');
 const purchasabilityCodes = require('./purchasabilityCodes');
 
+require('./configureCustomEvmMethods');
+
 module.exports = {
   expect,
   expectBignumber,
