@@ -4,6 +4,6 @@ module.exports = Object.freeze({
   TooManyHandovers: 201,
   TemperatureTooHigh: 202,
   TemperatureTooLow: 203,
-  TotalTransitTimeTooLong: 204,
-  SingleTransitTimeTooLong: 205,
+  TotalTransitDurationTooLong: 204,
+  SingleTransitDurationTooLong: 205,
 });

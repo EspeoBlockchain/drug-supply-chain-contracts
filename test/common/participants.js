@@ -6,8 +6,9 @@ const participant = (id, category) => ({
   category,
 });
 
+const validTemperature = -19;
 const conditions = (category = carrierCategories.Truck) => ({
-  temperature: -19,
+  temperature: validTemperature,
   category,
 });
 
