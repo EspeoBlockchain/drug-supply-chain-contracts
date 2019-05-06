@@ -145,4 +145,31 @@ contract('PurchasabilityValidator', (accounts) => {
       expectPurchasabilityCodes(actualCodes).toEqual([purchasabilityCodes.SingleTransitTimeTooLong]);
     });
   });
+
+  it('should combine all error codes', async () => {
+    // given
+    const carrierWithTemperatureTooHigh = participants.carrier(accounts[8], carrierCategories.Ship);
+    carrierWithTemperatureTooHigh.conditions.temperature = -1;
+    const carrierWithTemperatureTooLow = participants.carrier(accounts[9], carrierCategories.Truck);
+    carrierWithTemperatureTooLow.conditions.temperature = -30;
+    const drugItem = await DrugItem.new(
+      drugItemIdBytes,
+      vendor.id,
+      carrierWithTemperatureTooHigh.id,
+      carrierWithTemperatureTooHigh.category,
+    );
+    await web3.evm.increaseTime(9 * day);
+    await logHandoverFromCarrier(drugItem, carrierWithTemperatureTooHigh, carrierWithTemperatureTooLow);
+    await logHandoverFromCarrier(drugItem, carrierWithTemperatureTooLow, carrier1);
+    await logHandoverFromCarrier(drugItem, carrier1, carrier2);
+    await logHandoverFromCarrier(drugItem, carrier2, carrier1);
+    // when
+    const actualCodes = await sut.isPurchasable(drugItem.address);
+    // then
+    const allErrorCodes = [
+      Object.values(purchasabilityCodes)
+        .filter(code => code > purchasabilityCodes.ValidForPurchase),
+    ];
+    expectPurchasabilityCodes(actualCodes).toEqual(...allErrorCodes);
+  });
 });
