@@ -14,63 +14,95 @@ contract PurchasabilityValidator {
     uint8 public SINGLE_TRANSIT_DURATION_TOO_LONG = 205;
 
     function isPurchasable(DrugItem _drugItem) public view returns (uint8[] memory result) {
-        result = new uint8[](10); // TODO array size should be the maximum number of errors
-        uint8 errorCount = 0;
+        result = new uint8[](0);
 
         DrugItem.Handover memory lastHandover = _drugItem.getLastHandover();
         uint handoverCount = _drugItem.getHandoverCount();
 
-        if (lastHandover.to.category != DrugItem.ParticipantCategory.Pharmacy) {
-            result[errorCount] = NOT_IN_PHARMACY;
-            errorCount++;
-        }
-
-        if (handoverCount > 4) {
-            result[errorCount] = TOO_MANY_HANDOVERS;
-            errorCount++;
-        }
+        result = appendErrorCode(result, checkLocation(lastHandover));
+        result = appendErrorCode(result, checkHandoverCount(handoverCount));
 
         for (uint8 i = 1; i < handoverCount; i++) {
             (DrugItem.Participant memory previous, uint transitStart) = _drugItem.handoverLog(i - 1);
-            address from = previous.id;
             (DrugItem.Participant memory to, uint when) = _drugItem.handoverLog(i);
+            DrugItem.TransitConditions memory conditions = _drugItem.getTransitConditions(previous.id, to.id, when);
 
-            DrugItem.TransitConditions memory conditions = _drugItem.getTransitConditions(from, to.id, when);
+            result = appendErrorCode(result, checkUpperTemperatureLimit(conditions));
+            result = appendErrorCode(result, checkLowerTemperatureLimit(conditions));
 
-            if (
-                (conditions.category == DrugItem.TransitCategory.Ship && conditions.temperature > -18) ||
-                (conditions.category == DrugItem.TransitCategory.Truck && conditions.temperature > -18) ||
-                (conditions.category == DrugItem.TransitCategory.Airplane && conditions.temperature > -10)
-            ) {
-                result[errorCount] = TEMPERATURE_TOO_HIGH;
-                errorCount++;
-            }
-
-            if (conditions.temperature < -22) {
-                result[errorCount] = TEMPERATURE_TOO_LOW;
-                errorCount++;
-            }
-
-            uint transitDuration = when - transitStart;
-            if (
-                (conditions.category == DrugItem.TransitCategory.Ship && transitDuration > 4 days) ||
-                (conditions.category == DrugItem.TransitCategory.Truck && transitDuration > 4 days) ||
-                (conditions.category == DrugItem.TransitCategory.Airplane && transitDuration > 1 days)
-            ) {
-                result[errorCount] = SINGLE_TRANSIT_DURATION_TOO_LONG;
-                errorCount++;
-            }
+            uint singleTransitDuration = when - transitStart;
+            result = appendErrorCode(result, checkSingleTransitDuration(conditions, singleTransitDuration));
         }
 
         (, uint start) = _drugItem.handoverLog(0);
-        uint stop = _drugItem.getLastHandover().when;
-        if (stop - start > 8 days) {
-            result[errorCount] = TOTAL_TRANSIT_DURATION_TOO_LONG;
-            errorCount++;
-        }
+        uint totalTransitDuration = lastHandover.when - start;
+        result = appendErrorCode(result, checkTotalTransitDuration(totalTransitDuration));
 
-        if (errorCount == 0) {
-            result[0] = VALID_FOR_PURCHASE;
+        // nothing wrong was found with the item - return success code
+        if (result.length == 0) {
+            result = appendErrorCode(result, VALID_FOR_PURCHASE);
+        }
+    }
+
+    function checkLocation(DrugItem.Handover memory lastHandover) private view returns (uint8 errorCode) {
+        if (lastHandover.to.category != DrugItem.ParticipantCategory.Pharmacy) {
+            errorCode = NOT_IN_PHARMACY;
+        }
+    }
+
+    function checkHandoverCount(uint handoverCount) private view returns (uint8 errorCode) {
+        if (handoverCount > 4) {
+            errorCode = TOO_MANY_HANDOVERS;
+        }
+    }
+
+    function checkUpperTemperatureLimit(DrugItem.TransitConditions memory conditions) private view returns (uint8 errorCode) {
+        if (
+            (conditions.category == DrugItem.TransitCategory.Ship && conditions.temperature > -18) ||
+            (conditions.category == DrugItem.TransitCategory.Truck && conditions.temperature > -18) ||
+            (conditions.category == DrugItem.TransitCategory.Airplane && conditions.temperature > -10)
+        ) {
+            errorCode = TEMPERATURE_TOO_HIGH;
+        }
+    }
+
+    function checkLowerTemperatureLimit(DrugItem.TransitConditions memory conditions) private view returns (uint8 errorCode) {
+        if (conditions.temperature < -22) {
+            errorCode = TEMPERATURE_TOO_LOW;
+        }
+    }
+
+    function checkSingleTransitDuration(
+        DrugItem.TransitConditions memory conditions,
+        uint transitDuration
+    )
+        private view returns (uint8 errorCode)
+    {
+        if (
+            (conditions.category == DrugItem.TransitCategory.Ship && transitDuration > 4 days) ||
+            (conditions.category == DrugItem.TransitCategory.Truck && transitDuration > 4 days) ||
+            (conditions.category == DrugItem.TransitCategory.Airplane && transitDuration > 1 days)
+        ) {
+            errorCode = SINGLE_TRANSIT_DURATION_TOO_LONG;
+        }
+    }
+
+    function checkTotalTransitDuration(uint transitDuration) private view returns (uint8 errorCode) {
+        if (transitDuration > 8 days) {
+            errorCode = TOTAL_TRANSIT_DURATION_TOO_LONG;
+        }
+    }
+
+    function appendErrorCode(uint8[] memory codes, uint8 code) private pure returns (uint8[] memory) {
+        if (code > 0) {
+            uint8[] memory result = new uint8[](codes.length + 1);
+            for (uint8 i = 0; i < codes.length; i++) {
+                result[i] = codes[i];
+            }
+            result[codes.length] = code;
+            return result;
+        } else {
+            return codes;
         }
     }
 }
