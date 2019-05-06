@@ -72,7 +72,7 @@ contract('PurchasabilityValidator', (accounts) => {
     name: 'ship temperature was above -18 degrees',
     carrier: carrierWithTemperature(carrierCategories.Ship, -17),
   }, {
-    name: 'airplace temperature was above -10 degrees',
+    name: 'airplane temperature was above -10 degrees',
     carrier: carrierWithTemperature(carrierCategories.Airplane, -9),
   }, {
     name: 'truck temperature was above -18 degrees',
