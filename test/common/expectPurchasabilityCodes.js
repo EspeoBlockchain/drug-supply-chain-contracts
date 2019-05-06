@@ -1,18 +1,11 @@
 const expect = require('./expect');
 
-const { hexToNumberString } = web3.utils;
-
-const expectedMaximumLength = 10;
-
 module.exports = actualCodes => ({
   toEqual: (expectedCodes) => {
-    const expected = [
-      ...expectedCodes.map(hexToNumberString),
-      ...Array(expectedMaximumLength - expectedCodes.length).fill('0'),
-    ];
-
+    const expected = expectedCodes.map(String);
     const actual = actualCodes.map(String);
 
-    expect(actual).to.deep.equal(expected);
+    expect(actual).to.include(...expected);
+    expect(actual.length).to.equal(expected.length);
   },
 });

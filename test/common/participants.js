@@ -1,15 +1,14 @@
 const { Vendor, Carrier, Pharmacy } = require('./participantCategories');
 const carrierCategories = require('./carrierCategories');
 
-const randomTemperature = () => Math.floor(-20 * Math.random());
-
 const participant = (id, category) => ({
   id,
   category,
 });
 
+const validTemperature = -19;
 const conditions = (category = carrierCategories.Truck) => ({
-  temperature: randomTemperature(),
+  temperature: validTemperature,
   category,
 });
 
