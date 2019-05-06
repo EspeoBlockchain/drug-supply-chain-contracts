@@ -109,11 +109,40 @@ contract('PurchasabilityValidator', (accounts) => {
     const drugItem = await DrugItem.new(drugItemIdBytes, vendor.id, carrier1.id, carrier1.category);
     await web3.evm.increaseTime(4 * day);
     await logHandoverFromCarrier(drugItem, carrier1, carrier2);
-    await web3.evm.increaseTime(5 * day);
-    await logHandoverFromCarrier(drugItem, carrier2, pharmacy);
+    await web3.evm.increaseTime(4 * day);
+    await logHandoverFromCarrier(drugItem, carrier2, carrier1);
+    await web3.evm.increaseTime(1); // only a second over 8 days
+    await logHandoverFromCarrier(drugItem, carrier1, pharmacy);
     // when
     const actualCodes = await sut.isPurchasable(drugItem.address);
     // then
     expectPurchasabilityCodes(actualCodes).toEqual([purchasabilityCodes.TotalTransitTimeTooLong]);
+  });
+
+  const singleTransitTimeTooLongTestCases = [{
+    name: 'ship transit took more than 4 days',
+    carrier: participants.carrier(accounts[9], carrierCategories.Ship),
+    transitTime: 4 * day + 1,
+  }, {
+    name: 'truck transit took more than 4 days',
+    carrier: participants.carrier(accounts[9], carrierCategories.Truck),
+    transitTime: 4 * day + 1,
+  }, {
+    name: 'airplane transit took more than 1 day',
+    carrier: participants.carrier(accounts[9], carrierCategories.Airplane),
+    transitTime: 1 * day + 1,
+  }];
+
+  singleTransitTimeTooLongTestCases.forEach(({ name, carrier, transitTime }) => {
+    it(`should return error code if ${name}`, async () => {
+      // given
+      const drugItem = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, carrier.category);
+      await web3.evm.increaseTime(transitTime);
+      await logHandoverFromCarrier(drugItem, carrier, pharmacy);
+      // when
+      const actualCodes = await sut.isPurchasable(drugItem.address);
+      // then
+      expectPurchasabilityCodes(actualCodes).toEqual([purchasabilityCodes.SingleTransitTimeTooLong]);
+    });
   });
 });

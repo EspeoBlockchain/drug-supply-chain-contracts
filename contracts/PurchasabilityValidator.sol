@@ -11,6 +11,7 @@ contract PurchasabilityValidator {
     uint8 public TEMPERATURE_TOO_HIGH = 202;
     uint8 public TEMPERATURE_TOO_LOW = 203;
     uint8 public TOTAL_TRANSIT_TIME_TOO_LONG = 204;
+    uint8 public SINGLE_TRANSIT_TIME_TOO_LONG = 205;
 
     function isPurchasable(DrugItem _drugItem) public view returns (uint8[] memory result) {
         result = new uint8[](10); // TODO array size should be the maximum number of errors
@@ -30,7 +31,7 @@ contract PurchasabilityValidator {
         }
 
         for (uint8 i = 1; i < handoverCount; i++) {
-            (DrugItem.Participant memory previous, ) = _drugItem.handoverLog(i - 1);
+            (DrugItem.Participant memory previous, uint transitStart) = _drugItem.handoverLog(i - 1);
             address from = previous.id;
             (DrugItem.Participant memory to, uint when) = _drugItem.handoverLog(i);
 
@@ -47,6 +48,16 @@ contract PurchasabilityValidator {
 
             if (conditions.temperature < -22) {
                 result[errorCount] = TEMPERATURE_TOO_LOW;
+                errorCount++;
+            }
+
+            uint transitTime = when - transitStart;
+            if (
+                (conditions.category == DrugItem.TransitCategory.Ship && transitTime > 4 days) ||
+                (conditions.category == DrugItem.TransitCategory.Truck && transitTime > 4 days) ||
+                (conditions.category == DrugItem.TransitCategory.Airplane && transitTime > 1 days)
+            ) {
+                result[errorCount] = SINGLE_TRANSIT_TIME_TOO_LONG;
                 errorCount++;
             }
         }
