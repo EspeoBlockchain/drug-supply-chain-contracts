@@ -22,24 +22,24 @@ contract('DrugItem', async (accounts) => {
   const pharmacy = participants.pharmacy(accounts[4]);
   const otherAccount = accounts[9];
 
-  it('should set the creator as the primary', async () => {
+  it('should set the creator as the owner', async () => {
     // when
     const sut = await DrugItem.new(drugItemIdBytes, vendor.id, carrier1.id, carrier1.category);
     // then
-    const actualPrimary = await sut.primary();
-    expect(actualPrimary).to.equal(accounts[0]);
+    const actualOwner = await sut.owner();
+    expect(actualOwner).to.equal(accounts[0]);
   });
 
   it('should create a drug item and register initial handover', async () => {
     // when
     const actual = await DrugItem.new(drugItemIdBytes, vendor.id, carrier1.id, carrier1.category);
     // then
-    await expect(actual.drugItemId()).to.eventually.equal(drugItemId);
-    await expect(actual.vendor()).to.eventually.equal(vendor.id);
-    await expect(actual.primary()).to.eventually.equal(accounts[0]);
+    await expect(actual.getDrugItemId()).to.eventually.equal(drugItemId);
+    await expect(actual.getVendor()).to.eventually.equal(vendor.id);
+    await expect(actual.owner()).to.eventually.equal(accounts[0]);
     await expectDrugItem(actual).toHaveHandoverCountThatEquals(1);
 
-    const actualHandover = await actual.handoverLog(0);
+    const actualHandover = await actual.getHandover(0);
     expectHandover(actualHandover).toHaveToIdThatEquals(carrier1.id);
     expectHandover(actualHandover).toHaveToCategoryThatEquals(carrier1.category);
     await expectHandover(actualHandover).toHaveWhenEqualToLatestBlockTimestamp();
@@ -59,7 +59,7 @@ contract('DrugItem', async (accounts) => {
         // when
         const actual = await DrugItem.new(drugItemIdBytes, vendor.id, carrier1.id, category);
         // then
-        const actualCategory = (await actual.handoverLog(0)).to.category;
+        const actualCategory = (await actual.getHandover(0)).to.category;
         expect(actualCategory).to.equal(`${category}`);
       });
     });
@@ -109,7 +109,7 @@ contract('DrugItem', async (accounts) => {
     );
     // then
     await expectDrugItem(sut).toHaveHandoverCountThatEquals(2);
-    const actualHandover = await sut.handoverLog(1);
+    const actualHandover = await sut.getHandover(1);
     expectHandover(actualHandover).toHaveToIdThatEquals(pharmacy.id);
     expectHandover(actualHandover).toHaveToCategoryThatEquals(pharmacy.category);
     await expectHandover(actualHandover).toHaveWhenEqualToLatestBlockTimestamp();

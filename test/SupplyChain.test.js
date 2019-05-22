@@ -39,10 +39,10 @@ contract('SupplyChain', async (accounts) => {
     // then
     const drugItemAddress = await sut.getDrugItem(drugItemIdBytes);
     const actualDrugItem = await DrugItem.at(drugItemAddress);
-    await expect(actualDrugItem.drugItemId()).to.eventually.equal(drugItemId);
+    await expect(actualDrugItem.getDrugItemId()).to.eventually.equal(drugItemId);
 
     await expectDrugItem(actualDrugItem).toHaveHandoverCountThatEquals(1);
-    const actualHandover = await actualDrugItem.handoverLog(0);
+    const actualHandover = await actualDrugItem.getHandover(0);
     expectHandover(actualHandover).toHaveToIdThatEquals(carrier1.id);
     expectHandover(actualHandover).toHaveToCategoryThatEquals(carrier1.category);
     await expectHandover(actualHandover).toHaveWhenEqualToLatestBlockTimestamp();
@@ -97,7 +97,7 @@ contract('SupplyChain', async (accounts) => {
     const actualDrugItem = await DrugItem.at(drugItemAddress);
 
     await expectDrugItem(actualDrugItem).toHaveHandoverCountThatEquals(2);
-    const actualHandover = await actualDrugItem.handoverLog(1);
+    const actualHandover = await actualDrugItem.getHandover(1);
     expectHandover(actualHandover).toHaveToIdThatEquals(carrier2.id);
     expectHandover(actualHandover).toHaveToCategoryThatEquals(carrier2.category);
     await expectHandover(actualHandover).toHaveWhenEqualToLatestBlockTimestamp();
@@ -123,7 +123,7 @@ contract('SupplyChain', async (accounts) => {
     const actualDrugItem = await DrugItem.at(drugItemAddress);
 
     await expectDrugItem(actualDrugItem).toHaveHandoverCountThatEquals(2);
-    const actualHandover = await actualDrugItem.handoverLog(1);
+    const actualHandover = await actualDrugItem.getHandover(1);
     expectHandover(actualHandover).toHaveToIdThatEquals(pharmacy.id);
     expectHandover(actualHandover).toHaveToCategoryThatEquals(pharmacy.category);
     await expectHandover(actualHandover).toHaveWhenEqualToLatestBlockTimestamp();
@@ -157,7 +157,7 @@ contract('SupplyChain', async (accounts) => {
     const actualDrugItem = await DrugItem.at(drugItemAddress);
 
     await expectDrugItem(actualDrugItem).toHaveHandoverCountThatEquals(3);
-    const actualHandover = await actualDrugItem.handoverLog(2);
+    const actualHandover = await actualDrugItem.getHandover(2);
     expectHandover(actualHandover).toHaveToIdThatEquals(carrier3.id);
     expectHandover(actualHandover).toHaveToCategoryThatEquals(carrier3.category);
     await expectHandover(actualHandover).toHaveWhenEqualToLatestBlockTimestamp();
@@ -191,7 +191,7 @@ contract('SupplyChain', async (accounts) => {
     const actualDrugItem = await DrugItem.at(drugItemAddress);
 
     await expectDrugItem(actualDrugItem).toHaveHandoverCountThatEquals(3);
-    const actualHandover = await actualDrugItem.handoverLog(2);
+    const actualHandover = await actualDrugItem.getHandover(2);
     expectHandover(actualHandover).toHaveToIdThatEquals(pharmacy.id);
     expectHandover(actualHandover).toHaveToCategoryThatEquals(pharmacy.category);
     await expectHandover(actualHandover).toHaveWhenEqualToLatestBlockTimestamp();

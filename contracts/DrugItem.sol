@@ -1,10 +1,10 @@
 pragma solidity 0.5.7;
 pragma experimental ABIEncoderV2;
 
-import "openzeppelin-solidity/contracts/ownership/Secondary.sol";
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
-contract DrugItem is Secondary {
+contract DrugItem is Ownable {
 
     struct Handover {
         Participant to;
@@ -24,18 +24,22 @@ contract DrugItem is Secondary {
     enum ParticipantCategory { Vendor, Carrier, Pharmacy }
     enum TransitCategory { NotApplicable, Airplane, Ship, Truck }
 
-    bytes32 public drugItemId;
-    address public vendor;
-    Handover[] public handoverLog;
+    bytes32 private drugItemId;
+    address private vendor;
+    Handover[] private handoverLog;
     mapping(bytes32 => TransitConditions) private transitConditionsLog;
 
-    constructor(bytes32 _drugItemId, address _vendor, address _to, ParticipantCategory _participantCategory)
+    constructor(bytes32 _drugItemId, address _vendor, address _to, DrugItem.ParticipantCategory _participantCategory)
         public
         notEmptyDrugItemId(_drugItemId)
     {
         drugItemId = _drugItemId;
         vendor = _vendor;
         logHandover(_vendor, _to, _participantCategory);
+    }
+
+    function getHandover(uint index) public view returns (Handover memory) {
+        return handoverLog[index];
     }
 
     function getHandoverCount() public view returns (uint256) {
@@ -52,7 +56,7 @@ contract DrugItem is Secondary {
         ParticipantCategory _participantCategory
     )
         public
-        onlyPrimary
+        onlyOwner
     {
         require(_participantCategory != ParticipantCategory.Vendor, "Drug item can't be handed over to a vendor");
         require(handoverLog.length == 0 || getLastHandover().to.id == _from, "Handover must be done by the current drug item holder");
@@ -67,7 +71,7 @@ contract DrugItem is Secondary {
 
     function logTransitConditions(address _from, address _to, uint _when, int8 _temperature, TransitCategory _transitCategory)
         public
-        onlyPrimary
+        onlyOwner
     {
         uint length = handoverLog.length;
         require(
@@ -85,6 +89,14 @@ contract DrugItem is Secondary {
     function getTransitConditions(address _from, address _to, uint _when) public view returns (TransitConditions memory) {
         bytes32 key = getTransitConditionsKey(_from, _to, _when);
         return transitConditionsLog[key];
+    }
+
+    function getDrugItemId() public view returns (bytes32) {
+        return drugItemId;
+    }
+
+    function getVendor() public view returns (address) {
+        return vendor;
     }
 
     function getTransitConditionsKey(address _from, address _to, uint _when) private pure returns (bytes32) {

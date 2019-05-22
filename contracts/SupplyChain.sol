@@ -11,7 +11,7 @@ contract SupplyChain is VendorsManager {
     mapping(bytes32 => DrugItem) private items;
     PurchasabilityValidator private _validator;
 
-    constructor () public {
+    constructor() public {
         _validator = new PurchasabilityValidator();
     }
 
