@@ -1,7 +1,7 @@
 {
-  "name": "medical-supply-chain-contracts",
+  "name": "drug-supply-chain-contracts",
   "version": "0.0.1",
-  "description": "Smart contracts for a supply chain tracking vaccine packages",
+  "description": "Smart contracts for a supply chain tracking drug packages",
   "main": "index.js",
   "scripts": {
     "check": "npm test && npm run lint",
@@ -13,14 +13,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/EspeoBlockchain/medical-supply-chain-contracts.git"
+    "url": "git+https://github.com/EspeoBlockchain/drug-supply-chain-contracts.git"
   },
   "author": "Espeo Blockchain",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/EspeoBlockchain/medical-supply-chain-contracts/issues"
+    "url": "https://github.com/EspeoBlockchain/drug-supply-chain-contracts/issues"
   },
-  "homepage": "https://github.com/EspeoBlockchain/medical-supply-chain-contracts#readme",
+  "homepage": "https://github.com/EspeoBlockchain/drug-supply-chain-contracts#readme",
   "devDependencies": {
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
