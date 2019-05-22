@@ -3,6 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "./DrugItem.sol";
 
+
 contract PurchasabilityValidator {
 
     uint8 public VALID_FOR_PURCHASE = 100;
@@ -23,19 +24,24 @@ contract PurchasabilityValidator {
         result = appendErrorCode(result, checkHandoverCount(handoverCount));
 
         for (uint8 i = 1; i < handoverCount; i++) {
-            (DrugItem.Participant memory previous, uint transitStart) = _drugItem.handoverLog(i - 1);
-            (DrugItem.Participant memory to, uint when) = _drugItem.handoverLog(i);
-            DrugItem.TransitConditions memory conditions = _drugItem.getTransitConditions(previous.id, to.id, when);
+            DrugItem.Handover memory previousHandover = _drugItem.getHandover(i - 1);
+
+            DrugItem.Handover memory handover = _drugItem.getHandover(i);
+            DrugItem.TransitConditions memory conditions = _drugItem.getTransitConditions(
+                previousHandover.to.id,
+                handover.to.id,
+                handover.when
+            );
 
             result = appendErrorCode(result, checkUpperTemperatureLimit(conditions));
             result = appendErrorCode(result, checkLowerTemperatureLimit(conditions));
 
-            uint singleTransitDuration = when - transitStart;
+            uint singleTransitDuration = handover.when - previousHandover.when;
             result = appendErrorCode(result, checkSingleTransitDuration(conditions, singleTransitDuration));
         }
 
-        (, uint start) = _drugItem.handoverLog(0);
-        uint totalTransitDuration = lastHandover.when - start;
+        DrugItem.Handover memory initialHandover = _drugItem.getHandover(0);
+        uint totalTransitDuration = lastHandover.when - initialHandover.when;
         result = appendErrorCode(result, checkTotalTransitDuration(totalTransitDuration));
 
         // nothing wrong was found with the item - return success code
