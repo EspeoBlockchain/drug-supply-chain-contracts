@@ -1,28 +1,31 @@
 pragma solidity 0.5.7;
 pragma experimental ABIEncoderV2;
 
+import "./interfaces/IDrugItem.sol";
+import "./interfaces/ISupplyChain.sol";
+import "./interfaces/IPurchasabilityValidator.sol";
 import "./DrugItem.sol";
 import "./PurchasabilityValidator.sol";
 import "./VendorsManager.sol";
 
 
-contract SupplyChain is VendorsManager {
+contract SupplyChain is ISupplyChain, VendorsManager {
 
-    mapping(bytes32 => DrugItem) private items;
-    PurchasabilityValidator private _validator;
+    mapping(bytes32 => IDrugItem) private items;
+    IPurchasabilityValidator private _validator;
 
     constructor() public {
         _validator = new PurchasabilityValidator();
     }
 
-    function getDrugItem(bytes32 _drugItemId) public view returns (DrugItem) {
+    function getDrugItem(bytes32 _drugItemId) public view returns (IDrugItem) {
         return items[_drugItemId];
     }
 
     function registerInitialHandover(
         bytes32 _drugItemId,
         address _to,
-        DrugItem.ParticipantCategory _participantCategory
+        IDrugItem.ParticipantCategory _participantCategory
     )
         public
         onlyNewDrugItem(_drugItemId)
@@ -34,9 +37,9 @@ contract SupplyChain is VendorsManager {
     function registerHandover(
         bytes32 _drugItemId,
         address _to,
-        DrugItem.ParticipantCategory _participantCategory,
+        IDrugItem.ParticipantCategory _participantCategory,
         int8 _temperature,
-        DrugItem.TransitCategory _transitCategory
+        IDrugItem.TransitCategory _transitCategory
     )
         public
         onlyKnownDrugItem(_drugItemId)

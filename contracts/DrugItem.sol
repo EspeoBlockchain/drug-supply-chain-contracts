@@ -2,34 +2,17 @@ pragma solidity 0.5.7;
 pragma experimental ABIEncoderV2;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "./interfaces/IDrugItem.sol";
 
 
-contract DrugItem is Ownable {
-
-    struct Handover {
-        Participant to;
-        uint when;
-    }
-
-    struct Participant {
-        address id;
-        ParticipantCategory category;
-    }
-
-    struct TransitConditions {
-        int8 temperature;
-        TransitCategory category;
-    }
-
-    enum ParticipantCategory { Vendor, Carrier, Pharmacy }
-    enum TransitCategory { NotApplicable, Airplane, Ship, Truck }
+contract DrugItem is IDrugItem, Ownable {
 
     bytes32 private drugItemId;
     address private vendor;
     Handover[] private handoverLog;
     mapping(bytes32 => TransitConditions) private transitConditionsLog;
 
-    constructor(bytes32 _drugItemId, address _vendor, address _to, DrugItem.ParticipantCategory _participantCategory)
+    constructor(bytes32 _drugItemId, address _vendor, address _to, ParticipantCategory _participantCategory)
         public
         notEmptyDrugItemId(_drugItemId)
     {
