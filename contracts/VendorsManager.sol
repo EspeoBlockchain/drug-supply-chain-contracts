@@ -1,9 +1,10 @@
 pragma solidity 0.5.7;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "./interfaces/IVendorsManager.sol";
 
 
-contract VendorsManager is Ownable {
+contract VendorsManager is IVendorsManager, Ownable {
 
     mapping(address => bool) private vendors;
 
