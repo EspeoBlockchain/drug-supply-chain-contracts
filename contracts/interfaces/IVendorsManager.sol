@@ -10,6 +10,4 @@ contract IVendorsManager {
     function deregisterVendor(address _vendor) public;
 
     function isVendor(address _vendor) public view returns (bool);
-
-    // modifier onlyKnownVendor()
 }

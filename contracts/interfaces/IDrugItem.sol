@@ -22,10 +22,6 @@ contract IDrugItem {
     enum ParticipantCategory { Vendor, Carrier, Pharmacy }
     enum TransitCategory { NotApplicable, Airplane, Ship, Truck }
 
-    // constructor(bytes32 _drugItemId, address _vendor, address _to, ParticipantCategory _participantCategory)
-    //     public
-    //     notEmptyDrugItemId(_drugItemId)
-
     // invokable only by the contract creator
     function logHandover(address _from, address _to, ParticipantCategory _participantCategory) public;
 
