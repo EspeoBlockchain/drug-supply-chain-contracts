@@ -11,7 +11,6 @@ import "./VendorsManager.sol";
 
 contract SupplyChain is ISupplyChain, VendorsManager {
 
-    mapping(bytes32 => IDrugItem) private items;
     IPurchasabilityValidator private _validator;
 
     constructor() public {
@@ -19,7 +18,7 @@ contract SupplyChain is ISupplyChain, VendorsManager {
     }
 
     function getDrugItem(bytes32 _drugItemId) public view returns (IDrugItem) {
-        return items[_drugItemId];
+        // TODO
     }
 
     function registerInitialHandover(
@@ -31,7 +30,7 @@ contract SupplyChain is ISupplyChain, VendorsManager {
         onlyNewDrugItem(_drugItemId)
         onlyKnownVendor
     {
-        items[_drugItemId] = new DrugItem(_drugItemId, msg.sender, _to, _participantCategory);
+        // TODO
     }
 
     function registerHandover(
@@ -44,8 +43,7 @@ contract SupplyChain is ISupplyChain, VendorsManager {
         public
         onlyKnownDrugItem(_drugItemId)
     {
-        items[_drugItemId].logHandover(msg.sender, _to, _participantCategory);
-        items[_drugItemId].logTransitConditions(msg.sender, _to, now, _temperature, _transitCategory);
+        // TODO
     }
 
     function isPurchasable(bytes32 _drugItemId)
@@ -54,16 +52,16 @@ contract SupplyChain is ISupplyChain, VendorsManager {
         onlyKnownDrugItem(_drugItemId)
         returns (uint8[] memory)
     {
-        return _validator.isPurchasable(items[_drugItemId]);
+        // TODO
     }
 
     modifier onlyNewDrugItem(bytes32 _drugItemId) {
-        require(address(items[_drugItemId]) == address(0), "Given drug item is already known");
+        // TODO
         _;
     }
 
     modifier onlyKnownDrugItem(bytes32 _drugItemId) {
-        require(address(items[_drugItemId]) != address(0), "Given drug item is unknown");
+        // TODO
         _;
     }
 }

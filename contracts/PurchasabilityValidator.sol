@@ -44,9 +44,7 @@ contract PurchasabilityValidator is IPurchasabilityValidator {
     }
 
     function checkLocation(IDrugItem.Handover memory lastHandover) private view returns (uint8 errorCode) {
-        if (lastHandover.to.category != IDrugItem.ParticipantCategory.Pharmacy) {
-            errorCode = NOT_IN_PHARMACY;
-        }
+        // TODO
     }
 
     function checkHandoverCount(uint handoverCount) private view returns (uint8 errorCode) {
@@ -56,19 +54,11 @@ contract PurchasabilityValidator is IPurchasabilityValidator {
     }
 
     function checkUpperTemperatureLimit(IDrugItem.TransitConditions memory conditions) private view returns (uint8 errorCode) {
-        if (
-            (conditions.category == IDrugItem.TransitCategory.Ship && conditions.temperature > -18) ||
-            (conditions.category == IDrugItem.TransitCategory.Truck && conditions.temperature > -18) ||
-            (conditions.category == IDrugItem.TransitCategory.Airplane && conditions.temperature > -10)
-        ) {
-            errorCode = TEMPERATURE_TOO_HIGH;
-        }
+        // TODO
     }
 
     function checkLowerTemperatureLimit(IDrugItem.TransitConditions memory conditions) private view returns (uint8 errorCode) {
-        if (conditions.temperature < -22) {
-            errorCode = TEMPERATURE_TOO_LOW;
-        }
+        // TODO
     }
 
     function checkSingleTransitDuration(
@@ -87,9 +77,7 @@ contract PurchasabilityValidator is IPurchasabilityValidator {
     }
 
     function checkTotalTransitDuration(uint transitDuration) private view returns (uint8 errorCode) {
-        if (transitDuration > 8 days) {
-            errorCode = TOTAL_TRANSIT_DURATION_TOO_LONG;
-        }
+        // TODO
     }
 
     function appendErrorCode(uint8[] memory codes, uint8 code) private pure returns (uint8[] memory) {

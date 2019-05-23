@@ -135,14 +135,7 @@ contract('PurchasabilityValidator', (accounts) => {
 
   singleTransitDurationTooLongTestCases.forEach(({ name, carrier, transitDuration }) => {
     it(`should return error code if ${name}`, async () => {
-      // given
-      const drugItem = await DrugItem.new(drugItemIdBytes, vendor.id, carrier.id, carrier.category);
-      await web3.evm.increaseTime(transitDuration);
-      await logHandoverFromCarrier(drugItem, carrier, pharmacy);
-      // when
-      const actualCodes = await sut.isPurchasable(drugItem.address);
-      // then
-      expectPurchasabilityCodes(actualCodes).toEqual([purchasabilityCodes.SingleTransitDurationTooLong]);
+      throw new Error('TODO');
     });
   });
 

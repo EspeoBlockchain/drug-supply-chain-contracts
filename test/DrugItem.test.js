@@ -72,16 +72,7 @@ contract('DrugItem', async (accounts) => {
   });
 
   it('should not allow a handover to a vendor', async () => {
-    // given
-    const sut = await DrugItem.new(drugItemIdBytes, vendor.id, carrier1.id, carrier1.category);
-    // when
-    const promise = sut.logHandover(
-      carrier1.id,
-      pharmacy.id,
-      participantCategories.Vendor,
-    );
-    // then
-    await expect(promise).to.be.rejectedWith('Drug item can\'t be handed over to a vendor');
+    throw new Error('TODO');
   });
 
   it('should not allow unknown participant category when creating drugItem', async () => {
@@ -116,17 +107,7 @@ contract('DrugItem', async (accounts) => {
   });
 
   it('should not allow non-owner to register next handovers', async () => {
-    // given
-    const sut = await DrugItem.new(drugItemIdBytes, vendor.id, carrier1.id, carrier1.category);
-    // when
-    const promise = sut.logHandover(
-      carrier1.id,
-      pharmacy.id,
-      pharmacy.category,
-      { from: otherAccount },
-    );
-    // then
-    await expect(promise).to.be.rejected;
+    throw new Error('TODO');
   });
 
   it('should not allow unknown carrier category when registering handovers', async () => {
@@ -160,16 +141,8 @@ contract('DrugItem', async (accounts) => {
     await expect(handoverLog).to.be.rejectedWith('Transit conditions must be logged before next handover');
   });
 
-  it('should return the only handover after initial handover', async () => {
-    // given
-    const sut = await DrugItem.new(drugItemIdBytes, vendor.id, carrier1.id, carrier1.category);
-    // when
-    const actualHandover = await sut.getLastHandover();
-    // then
-    expect(actualHandover.to.id).to.equal(carrier1.id);
-    expect(actualHandover.to.category).to.equal(`${carrier1.category}`);
-    const latestBlockTimestamp = (await web3.eth.getBlock('latest')).timestamp;
-    expect(actualHandover.when).to.equal(`${latestBlockTimestamp}`);
+  it('should return the initial handover as the last after creation', async () => {
+    throw new Error('TODO');
   });
 
   it('should return the last handover after a sequence of handovers', async () => {
